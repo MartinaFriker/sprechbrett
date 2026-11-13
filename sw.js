@@ -1,6 +1,6 @@
 // Service worker: keeps the app usable offline and installable.
 // Raise VERSION whenever an app file changes, so devices load the new version.
-const VERSION = "v8";
+const VERSION = "v9";
 const APP_CACHE = "sprechbrett-app-" + VERSION;
 
 const APP_FILES = [

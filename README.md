@@ -10,7 +10,8 @@ eines analogen Bildkarten-Kommunikationsbuchs.
   links nach rechts vor. Die Taste rechts mit den drei Kärtchen legt alle
   Karten zurück.
 - **Eltern-Bereich:** über das kleine Zahnrad oben links, geschützt mit einer
-  Rechenaufgabe. Dort legt man Karten an (Plus-Felder), bearbeitet Seiten und
+  Rechenaufgabe. Dort legt man Karten an (Plus-Felder), verschiebt sie per
+  Ziehen auf einen anderen Platz (ist er besetzt, tauschen die Karten), bearbeitet Seiten und
   Reiter, ändert Hintergrundfarbe, Streifenzahl und Streifenfarbe und macht Sicherungen.
 
 ## Online stellen (HTTPS)

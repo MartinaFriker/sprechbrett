@@ -275,6 +275,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 }
 .plus svg { width: 100%; height: 100%; }
 .parent-mode .slot:has(.plus) { background: rgba(255, 255, 255, .35); }
+.slot.drop-target { outline: 5px solid #FFD400; outline-offset: 3px; }
 body.black-strips { --strip: #1E1E1E; }
 
 .pill {

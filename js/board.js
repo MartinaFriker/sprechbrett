@@ -163,6 +163,17 @@ function showDropMarker(index, excludeId) {
 
 function removeDropMarker() {
   document.querySelectorAll(".drop-marker").forEach((m) => m.remove());
+  document.querySelectorAll(".slot.drop-target").forEach((s) => s.classList.remove("drop-target"));
+}
+
+// Parent mode: outline the slot a dragged card would move to (or swap with).
+function showDropSlot(x, y, srcEl) {
+  const target = zoneAt(x, y);
+  const slot = target.slot !== undefined
+    ? document.querySelector(`.slot[data-strip="${target.strip}"][data-slot="${target.slot}"]`)
+    : null;
+  document.querySelectorAll(".slot.drop-target").forEach((s) => { if (s !== slot) s.classList.remove("drop-target"); });
+  if (slot && !slot.contains(srcEl)) slot.classList.add("drop-target");
 }
 
 function zoneAt(x, y) {
@@ -303,7 +314,9 @@ export function attachBoardEvents(api) {
     }
     moveFloating(drag, e.clientX, e.clientY);
     const { mode } = getState();
-    if (mode === "kid" && zoneAt(e.clientX, e.clientY).zone === "sentence") {
+    if (mode === "parent") {
+      showDropSlot(e.clientX, e.clientY, drag.srcEl);
+    } else if (zoneAt(e.clientX, e.clientY).zone === "sentence") {
       showDropMarker(sentenceIndexAt(e.clientX, drag.cardId), drag.cardId);
     } else {
       removeDropMarker();
