@@ -22,3 +22,11 @@ test("parseBackup rejects anything else", () => {
   assert.throws(() => parseBackup('{"app":"other"}'), NOT_A_BACKUP);
   assert.throws(() => parseBackup('{"app":"sprechbrett","book":{"pages":[]}}'), NOT_A_BACKUP);
 });
+
+import { collectImages } from "../js/backup.js";
+
+test("collectImages gathers data URLs and reports missing pictures", async () => {
+  const store = { 1: "data:a", 3: "data:c" };
+  const r = await collectImages([1, 2, 3], async (id) => store[id] ?? null);
+  assert.deepEqual(r, { images: { 1: "data:a", 3: "data:c" }, missing: [2] });
+});

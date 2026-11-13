@@ -19,7 +19,8 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  background: var(--violet);
+  /* The safe-area insets show the board colour on top and violet at the bottom. */
+  background: linear-gradient(var(--board-bg) 50%, var(--violet) 50%);
   overscroll-behavior: none;
 }
 
@@ -390,4 +391,16 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   padding: 12px 20px;
   border-radius: 12px;
   font-weight: 600;
+}
+
+.fatal {
+  position: fixed;
+  inset: 20% 15% auto;
+  z-index: 200;
+  background: #fff;
+  border-radius: 18px;
+  padding: 28px;
+  font-size: 22px;
+  font-weight: 600;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
 }

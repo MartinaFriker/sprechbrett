@@ -131,6 +131,10 @@ export function renderBoard(state) {
 
 let drag = null; // the one active pointer gesture; other fingers are ignored
 
+export function isDragging() {
+  return drag !== null;
+}
+
 function shakeSentence() {
   const s = $("sentence");
   s.classList.remove("shake");
@@ -257,7 +261,18 @@ export function attachBoardEvents(api) {
     if (refused) shakeSentence();
   }
 
+  // Drop a gesture whose pointerup never arrived, so the board can never get stuck.
+  function cancelDrag() {
+    const d = drag;
+    drag = null;
+    removeDropMarker();
+    if (d?.floatEl) flyBack(d);
+    if (getState().renderPending) api.render();
+  }
+
   document.addEventListener("pointerdown", (e) => {
+    // A new primary pointer means every earlier touch has ended.
+    if (drag && e.isPrimary) cancelDrag();
     if (drag) return; // a second finger while dragging is ignored
     const cardEl = e.target.closest(".card");
     if (!cardEl || cardEl.classList.contains("floating")) return;
@@ -301,15 +316,18 @@ export function attachBoardEvents(api) {
     removeDropMarker();
     if (e.type === "pointercancel") {
       if (d.floatEl) flyBack(d);
+      if (getState().renderPending) api.render();
       return;
     }
     if (!d.floatEl) onTap(d);
     else onDrop(d, e.clientX, e.clientY);
+    if (getState().renderPending) api.render();
   };
   document.addEventListener("pointerup", end);
   document.addEventListener("pointercancel", end);
 
   $("tabs").addEventListener("click", (e) => {
+    if (drag) return;
     const { mode, pageId } = getState();
     if (e.target.closest(".tab.add")) { api.onAddPage?.(); return; }
     const tab = e.target.closest(".tab[data-page]");
@@ -326,6 +344,7 @@ export function attachBoardEvents(api) {
   });
 
   $("btn-speak").addEventListener("click", () => {
+    if (drag) return;
     const { book } = getState();
     if (!book.sentence.length) return;
     const highlight = (i) => {
@@ -338,6 +357,7 @@ export function attachBoardEvents(api) {
   });
 
   $("btn-return-all").addEventListener("click", () => {
+    if (drag) return;
     stopSpeaking();
     apply(returnAll);
   });

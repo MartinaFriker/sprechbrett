@@ -12,9 +12,18 @@ eines analogen Bildkarten-Kommunikationsbuchs.
   Rechenaufgabe. Dort legt man Karten an (Plus-Felder), bearbeitet Seiten und
   Reiter, ändert Hintergrundfarbe und Streifenzahl und macht Sicherungen.
 
+## Online stellen (HTTPS)
+
+Das iPad braucht die App unter einer **https://**-Adresse. Nur dann
+funktionieren Offline-Betrieb, Installation und Sicherung. Eine einfache und
+kostenlose Möglichkeit ist **GitHub Pages**: Den Ordner als Repository auf
+GitHub hochladen, dann unter *Settings → Pages* den Branch `main` als Quelle
+wählen. Die App ist danach unter `https://<name>.github.io/<repo>/` erreichbar.
+Eine Adresse wie `http://192.168.…:8642` vom Mac reicht nicht.
+
 ## Auf dem iPad installieren
 
-1. Die Adresse der App in **Safari** öffnen.
+1. Die https-Adresse der App in **Safari** öffnen.
 2. **Teilen** → **Zum Home-Bildschirm**.
 3. Die App über das neue Symbol starten. Sie läuft dann im Vollbild und auch
    ohne Internet. Nur die Bildsuche braucht Internet.

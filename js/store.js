@@ -1,5 +1,7 @@
 // Persistent storage in IndexedDB: the book (store "kv") and picture blobs (store "images").
 
+import { withRetry } from "./retry.js";
+
 const DB_NAME = "sprechbrett";
 const DB_VERSION = 1;
 
@@ -15,14 +17,24 @@ function db() {
         if (!d.objectStoreNames.contains("kv")) d.createObjectStore("kv");
         if (!d.objectStoreNames.contains("images")) d.createObjectStore("images");
       };
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
+      req.onsuccess = () => {
+        const d = req.result;
+        // iOS may drop the connection while the app is in the background: reconnect next time.
+        d.onclose = () => { dbPromise = null; };
+        d.onversionchange = () => { d.close(); dbPromise = null; };
+        resolve(d);
+      };
+      req.onerror = () => { dbPromise = null; reject(req.error); };
     });
   }
   return dbPromise;
 }
 
-async function run(storeName, mode, fn) {
+function run(storeName, mode, fn) {
+  return withRetry(() => runOnce(storeName, mode, fn), () => { dbPromise = null; });
+}
+
+async function runOnce(storeName, mode, fn) {
   const d = await db();
   return new Promise((resolve, reject) => {
     const tx = d.transaction(storeName, mode);

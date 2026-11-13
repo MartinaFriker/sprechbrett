@@ -27,3 +27,15 @@ export function parseBackup(text) {
   if (!Array.isArray(book.sentence)) book.sentence = [];
   return { book, images: data.images ?? {} };
 }
+
+// Reads all pictures in parallel; ids without a stored picture are listed in `missing`.
+export async function collectImages(ids, getDataUrl) {
+  const urls = await Promise.all(ids.map((id) => getDataUrl(id).catch(() => null)));
+  const images = {};
+  const missing = [];
+  ids.forEach((id, i) => {
+    if (urls[i]) images[id] = urls[i];
+    else missing.push(id);
+  });
+  return { images, missing };
+}

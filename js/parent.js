@@ -7,7 +7,7 @@ import {
 } from "./model.js";
 import { makeChallenge } from "./gate.js";
 import { searchPictograms, fetchPictogram, imageUrl } from "./arasaac.js";
-import { serializeBackup, parseBackup } from "./backup.js";
+import { serializeBackup, parseBackup, collectImages } from "./backup.js";
 import { putImage, putImageDataUrl, hasImage, getImageUrl, getImageDataUrl } from "./store.js";
 import { stopSpeaking } from "./speech.js";
 import { pictoImg } from "./board.js";
@@ -296,37 +296,47 @@ function backupText(book) {
   return "Letzte Sicherung: " + (d === 0 ? "heute" : d === 1 ? "gestern" : `vor ${d} Tagen`);
 }
 
-async function exportBackup(api) {
-  const book = api.getState().book;
-  const images = {};
-  for (const id of allPictoIds(book)) {
-    const url = await getImageDataUrl(id);
-    if (url) images[id] = url;
-  }
+// Build the backup file ahead of time: iPad Safari only opens the share sheet when
+// navigator.share() is called right inside the tap, without waiting for storage first.
+async function prepareBackup(book) {
+  const { images, missing } = await collectImages(allPictoIds(book), getImageDataUrl);
   const now = new Date();
-  const text = serializeBackup(book, images, now);
   const name = `sprechbrett-${now.toISOString().slice(0, 10)}.json`;
-  const file = new File([text], name, { type: "application/json" });
+  const file = new File([serializeBackup(book, images, now)], name, { type: "application/json" });
+  return { book, file, now, missing };
+}
+
+// Must be called synchronously from the tap. Resolves to true once the file was handed over.
+function shareBackup(api, prepared) {
+  const { file, now } = prepared;
+  let handedOver;
   // iPad: the share sheet offers "In Dateien sichern"; elsewhere a normal download.
   if (navigator.canShare?.({ files: [file] })) {
-    try {
-      await navigator.share({ files: [file], title: "Sprechbrett-Sicherung" });
-    } catch (e) {
-      if (e.name === "AbortError") return false;
-      throw e;
-    }
+    handedOver = navigator.share({ files: [file], title: "Sprechbrett-Sicherung" }).then(
+      () => true,
+      (e) => {
+        if (e.name === "AbortError") return false;
+        if (e.name === "NotAllowedError") throw new Error("Teilen wurde nicht erlaubt. Bitte nochmal tippen.");
+        throw new Error("Sicherung fehlgeschlagen.");
+      },
+    );
   } else {
     const a = el("a");
     a.href = URL.createObjectURL(file);
-    a.download = name;
+    a.download = file.name;
     document.body.append(a);
     a.click();
     a.remove();
     setTimeout(() => URL.revokeObjectURL(a.href), 10000);
+    handedOver = Promise.resolve(true);
   }
-  api.getState().showBackupBanner = false;
-  api.update(markBackedUp(api.getState().book, now.toISOString()));
-  return true;
+  return handedOver.then((ok) => {
+    if (ok) {
+      api.getState().showBackupBanner = false;
+      api.update(markBackedUp(api.getState().book, now.toISOString()));
+    }
+    return ok;
+  });
 }
 
 async function importBackup(api, file) {
@@ -353,13 +363,13 @@ export function openSettings(api) {
     picker.value = current();
   };
   for (const c of SWATCHES) {
-    const s = button("", "swatch", () => { api.update(setBackground(api.getState().book, c)); markSwatch(); });
+    const s = button("", "swatch", () => { api.update(setBackground(api.getState().book, c)); markSwatch(); prepare(); });
     s.dataset.color = c;
     s.style.background = c;
     s.setAttribute("aria-label", "Farbe " + c);
     colours.append(s);
   }
-  picker.addEventListener("input", () => { api.update(setBackground(api.getState().book, picker.value.toUpperCase())); markSwatch(); });
+  picker.addEventListener("input", () => { api.update(setBackground(api.getState().book, picker.value.toUpperCase())); markSwatch(); prepare(); });
   colours.append(picker);
   markSwatch();
 
@@ -378,6 +388,7 @@ export function openSettings(api) {
       else throw e;
     }
     showCount();
+    prepare();
   };
   strips.append(button("−", "btn round", step(-1)), count, button("+", "btn round", step(1)));
   showCount();
@@ -398,16 +409,40 @@ export function openSettings(api) {
       msg.textContent = e.message;
     }
   });
+  // Keep a ready-made backup file for the current book (see prepareBackup).
+  let prepared = null;
+  let preparing = null;
+  const prepare = () => {
+    const book = api.getState().book;
+    if (prepared?.book === book || preparing?.book === book) return;
+    const job = { book };
+    preparing = job;
+    prepareBackup(book).then(
+      (p) => { if (preparing === job) { prepared = p; preparing = null; } },
+      () => { if (preparing === job) preparing = null; },
+    );
+  };
+  const saveBackup = () => {
+    msg.textContent = "";
+    if (prepared?.book !== api.getState().book) {
+      prepare();
+      msg.textContent = "Sicherung wird vorbereitet … bitte gleich nochmal tippen.";
+      return;
+    }
+    const missing = prepared.missing.length;
+    shareBackup(api, prepared).then(
+      (ok) => {
+        if (!ok) return;
+        last.textContent = backupText(api.getState().book);
+        if (missing) msg.textContent = `${missing} Bild(er) fehlten auf dem Gerät und sind nicht in der Sicherung.`;
+        prepare();
+      },
+      (e) => { msg.textContent = e.message; },
+    );
+  };
   const backupRow = el("div", "row");
   backupRow.append(
-    button("Sicherung speichern", "btn primary", async () => {
-      msg.textContent = "";
-      try {
-        if (await exportBackup(api)) last.textContent = backupText(api.getState().book);
-      } catch (e) {
-        msg.textContent = "Sicherung fehlgeschlagen: " + e.message;
-      }
-    }),
+    button("Sicherung speichern", "btn primary", saveBackup),
     button("Sicherung laden", "btn", () => fileInput.click()),
     fileInput,
   );
@@ -420,6 +455,7 @@ export function openSettings(api) {
     el("p", "attribution", ATTRIBUTION),
   );
   m.actions.append(el("span", "spacer"), button("Schliessen", "btn primary", m.close));
+  prepare();
 }
 
 // ---------- Wiring ----------

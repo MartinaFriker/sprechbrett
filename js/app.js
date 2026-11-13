@@ -1,15 +1,18 @@
 // Entry point: loads the book, keeps app state, saves changes and re-renders.
 
-import { createBook, allPictoIds, SLOTS_PER_STRIP, SENTENCE_MAX } from "./model.js";
+import { createBook, allPictoIds } from "./model.js";
 import { loadBook, saveBook, getImageUrl, requestPersistence } from "./store.js";
-import { renderBoard, attachBoardEvents } from "./board.js";
-import { initParent } from "./parent.js";
+import { renderBoard, attachBoardEvents, isDragging } from "./board.js";
+import { initParent, toast } from "./parent.js";
+import { cardSizes } from "./layout.js";
+import { loadInitialBook } from "./startup.js";
 
-export const state = { book: null, mode: "kid", pageId: null, showBackupBanner: false };
+export const state = { book: null, mode: "kid", pageId: null, showBackupBanner: false, renderPending: false };
 
 const TOOLBAR_H = 48;
 
 let saveTimer = null;
+let lastSaveWarning = 0;
 function scheduleSave() {
   clearTimeout(saveTimer);
   saveTimer = setTimeout(flushSave, 300);
@@ -17,7 +20,15 @@ function scheduleSave() {
 function flushSave() {
   clearTimeout(saveTimer);
   saveTimer = null;
-  if (state.book) saveBook(state.book).catch((e) => console.error("Speichern fehlgeschlagen", e));
+  if (!state.book) return;
+  saveBook(state.book).catch((e) => {
+    console.error("Speichern fehlgeschlagen", e);
+    // Make a failing save visible, but do not repeat the warning on every tap.
+    if (Date.now() - lastSaveWarning > 10000) {
+      lastSaveWarning = Date.now();
+      toast("Speichern fehlgeschlagen. Bitte die App schliessen und neu öffnen.");
+    }
+  });
 }
 
 // Replace the book. Returns false when the model reported a no-op.
@@ -41,28 +52,14 @@ export function setMode(mode) {
   render();
 }
 
-// Size cards so that SLOTS_PER_STRIP cards fit a strip and SENTENCE_MAX cards fit the sentence bar.
+// Size cards from the space #app really has (inside the safe-area insets).
 function layout() {
-  const css = getComputedStyle(document.documentElement);
-  const gap = parseFloat(css.getPropertyValue("--gap")) || 8;
-  const barPad = parseFloat(css.getPropertyValue("--bar-pad")) || 12;
-  const tabsW = parseFloat(css.getPropertyValue("--tabs-w")) || 132;
-  const W = window.innerWidth;
-  const H = window.innerHeight;
-  const strips = state.book.settings.stripCount;
-
-  // Height: board padding + 5 cards with gaps around them, plus the sentence bar (one card high).
-  // In parent mode the toolbar sits above the strips and takes some height.
+  const app = document.getElementById("app");
+  const cs = getComputedStyle(app);
+  const width = app.clientWidth - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+  const height = app.clientHeight - parseFloat(cs.paddingTop) - parseFloat(cs.paddingBottom);
   const toolbar = state.mode === "parent" ? TOOLBAR_H : 0;
-  const byHeight = (H - toolbar - 2 * gap - (SLOTS_PER_STRIP + 1) * gap - 2 * barPad - 2 * gap) / (SLOTS_PER_STRIP + 1);
-  // Width: every strip must fit beside the tab column.
-  const byWidth = (W - tabsW - 6 * gap) / strips - 3 * gap;
-  const card = Math.floor(Math.min(byHeight, byWidth, 170));
-
-  // Sentence bar: 8 cards + speak button (1 card) + return button (0.8 card) + paddings/gaps.
-  const fixed = 4 * barPad + 4 * gap + 4 * gap + (SENTENCE_MAX + 1) * gap;
-  const scard = Math.floor(Math.min(card, (W - fixed) / (SENTENCE_MAX + 1.8)));
-
+  const { card, scard } = cardSizes({ width, height, strips: state.book.settings.stripCount, toolbar });
   const root = document.documentElement.style;
   root.setProperty("--card", card + "px");
   root.setProperty("--scard", scard + "px");
@@ -70,21 +67,36 @@ function layout() {
 }
 
 export function render() {
+  // Never rebuild the board under a finger that is dragging a card; render when it ends.
+  if (isDragging()) {
+    state.renderPending = true;
+    return;
+  }
+  state.renderPending = false;
   layout();
   renderBoard(state);
 }
 
+function showLoadError() {
+  const box = document.createElement("div");
+  box.className = "fatal";
+  box.textContent = "Das Buch konnte nicht geladen werden. Bitte die App ganz schliessen und neu öffnen. " +
+    "Hilft das nicht: im Eltern-Bereich eine Sicherung laden.";
+  document.body.append(box);
+}
+
 async function start() {
-  let book = null;
+  let loaded;
   try {
-    book = await loadBook();
+    loaded = await loadInitialBook(loadBook, createBook);
   } catch (e) {
-    console.error("Laden fehlgeschlagen", e);
+    // Do not create or save anything: an empty book would overwrite the real one.
+    console.error(e.cause ?? e);
+    showLoadError();
+    return;
   }
-  if (!book) {
-    book = createBook();
-    saveBook(book).catch(() => {});
-  }
+  const { book, fresh } = loaded;
+  if (fresh) saveBook(book).catch(() => {});
   state.book = book;
   state.pageId = book.pages[0].id;
   requestPersistence();

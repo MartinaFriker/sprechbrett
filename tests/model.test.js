@@ -176,3 +176,18 @@ test("allPictoIds collects unique ids from cards and page icons", () => {
   book = addPage(book, "leer").book;
   assert.deepEqual(allPictoIds(book).sort(), [100, 101]);
 });
+
+import { newId } from "../js/model.js";
+
+test("newId works without crypto.randomUUID (plain http on the iPad)", () => {
+  const orig = crypto.randomUUID;
+  try {
+    Object.defineProperty(crypto, "randomUUID", { value: undefined, configurable: true, writable: true });
+    const a = newId(), b = newId();
+    assert.match(a, /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/);
+    assert.notEqual(a, b);
+  } finally {
+    delete crypto.randomUUID;
+    if (crypto.randomUUID !== orig) Object.defineProperty(crypto, "randomUUID", { value: orig, configurable: true, writable: true });
+  }
+});
