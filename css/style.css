@@ -98,15 +98,18 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 #sentence .card { --size: var(--scard); width: var(--scard); height: var(--scard); }
 
 .card .pic {
-  flex: 1;
-  min-height: 0;
+  /* Fixed share of the card so the picture can never grow into the word (Safari). */
+  flex: 0 0 auto;
+  height: calc(var(--size) * .6);
   width: 100%;
-  display: grid;
-  place-items: center;
+  position: relative;
 }
+/* Absolute fill: a percentage height inside a grid/flex item is not reliable in Safari. */
 .card img {
-  max-width: 100%;
-  max-height: 100%;
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
   pointer-events: none;
   -webkit-user-drag: none;
@@ -115,6 +118,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   font-weight: 700;
   font-size: calc(var(--size) * .15);
   line-height: 1.1;
+  flex: 0 0 auto;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
