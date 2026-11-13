@@ -31,6 +31,18 @@ Eine Adresse wie `http://192.168.…:8642` vom Mac reicht nicht.
 Tipp: Mit **Geführter Zugriff** (Einstellungen → Bedienungshilfen) bleibt das
 Kind in der App.
 
+## Eigene Bilder
+
+Im Karten-Fenster und im Seiten-Fenster gibt es den Knopf **„Eigenes Bild …“**.
+Auf dem iPad wählt man ein Foto aus der Fotomediathek, macht eines mit der
+Kamera oder holt eines aus „Dateien“; am Mac öffnet sich der Finder. Danach
+wählt man den quadratischen Ausschnitt: mit einem Finger verschieben, mit zwei
+Fingern (oder dem Regler) vergrössern. Das Wort tippt man selbst ein.
+
+Eigene Bilder liegen nur auf dem Gerät und in der Sicherungsdatei. Anders als
+die Piktogramme lassen sie sich nicht aus dem Internet nachladen.
+HEIC-Fotos öffnen am Mac nur in Safari; sonst JPG oder PNG verwenden.
+
 ## Sicherung
 
 Alle Karten und Bilder sind nur auf diesem iPad gespeichert. Im Eltern-Bereich

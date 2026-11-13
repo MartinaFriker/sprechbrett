@@ -11,6 +11,7 @@ import { serializeBackup, parseBackup, collectImages, restoreImageKey } from "./
 import { putImage, putImageDataUrl, hasImage, getImageUrl, getImageDataUrl } from "./store.js";
 import { stopSpeaking } from "./speech.js";
 import { pictoImg } from "./board.js";
+import { openCropper } from "./cropper.js";
 
 export const ATTRIBUTION = "Piktogramme: Sergio Palao, ARASAAC (arasaac.org), Lizenz CC BY-NC-SA 4.0";
 const SWATCHES = ["#F39200", "#F6B800", "#E4572E", "#4A90C8", "#6BAA4B"];
@@ -57,6 +58,49 @@ async function ensureImage(id) {
     await putImage(id, await fetchPictogram(id));
   }
   await getImageUrl(id);
+}
+
+// "Eigenes Bild" button: pick a photo (album, camera, files or a folder on the Mac),
+// let the parent crop it, then call onPicked(blob). Errors go to onError(message).
+function ownPictureButton(onPicked, onError) {
+  const input = el("input");
+  input.type = "file";
+  input.accept = "image/*";
+  input.hidden = true;
+  const b = button("Eigenes Bild …", "btn", () => input.click());
+  input.addEventListener("change", async () => {
+    const file = input.files?.[0];
+    input.value = "";
+    if (!file) return;
+    try {
+      const blob = await openCropper(file);
+      if (blob) onPicked(blob);
+    } catch (e) {
+      onError(e.message);
+    }
+  });
+  const wrap = el("span", "own-pic");
+  wrap.append(b, input);
+  return wrap;
+}
+
+// Shows a not yet stored own photo; the URL is released when the picture changes.
+function blobImg(blob, holder) {
+  if (holder.url) URL.revokeObjectURL(holder.url);
+  holder.url = URL.createObjectURL(blob);
+  const img = el("img");
+  img.src = holder.url;
+  return img;
+}
+
+// Store a picture before the book refers to it: own photos from memory, pictograms from ARASAAC.
+async function storePicture(id, ownBlob) {
+  if (ownBlob) {
+    await putImage(id, ownBlob);
+    await getImageUrl(id);
+  } else {
+    await ensureImage(id);
+  }
 }
 
 // Search field + result grid. Calls onPick({ id, keyword }) when a picture is chosen.
@@ -144,6 +188,9 @@ export function openCardDialog(api, { pageId, strip, slot, cardId }) {
   const existing = cardId ? book.cards[cardId] : null;
   const m = modal(existing ? "Karte bearbeiten" : "Neue Karte");
   let pictoId = existing?.pictoId ?? null;
+  let ownBlob = null; // a cropped photo that is stored only when the card is saved
+  let searchWord = null; // the word a search filled in, replaced when a photo is chosen
+  const blobUrl = {};
 
   const preview = el("div", "card preview");
   const pic = el("div", "pic");
@@ -167,16 +214,32 @@ export function openCardDialog(api, { pageId, strip, slot, cardId }) {
 
   const search = searchPanel((r) => {
     pictoId = r.id;
+    ownBlob = null;
     showRemote(r.id);
-    if (!existing || !wordInput.value.trim()) wordInput.value = r.keyword;
+    if (!existing || !wordInput.value.trim()) {
+      wordInput.value = r.keyword;
+      searchWord = r.keyword;
+    }
     word.textContent = wordInput.value;
   });
+  const ownPic = ownPictureButton((blob) => {
+    ownBlob = blob;
+    pictoId = ownPictureId();
+    search.wrap.querySelectorAll(".result.selected").forEach((x) => x.classList.remove("selected"));
+    pic.replaceChildren(blobImg(blob, blobUrl));
+    // A word from the pictogram search does not describe the own photo.
+    if (searchWord !== null && wordInput.value === searchWord) wordInput.value = "";
+    searchWord = null;
+    word.textContent = wordInput.value;
+    msg.textContent = "";
+    wordInput.focus();
+  }, (text) => { msg.textContent = text; });
   if (!existing) search.input.value = "";
 
   const side = el("div", "card-edit-side");
   const label = el("label", "field", "Wort");
   label.append(wordInput);
-  side.append(preview, label);
+  side.append(preview, ownPic, label);
   const layout = el("div", "card-edit");
   layout.append(search.wrap, side);
   const msg = el("p", "dlg-msg");
@@ -185,11 +248,11 @@ export function openCardDialog(api, { pageId, strip, slot, cardId }) {
 
   const save = async () => {
     const w = wordInput.value.trim();
-    if (pictoId == null) { msg.textContent = "Bitte zuerst ein Bild suchen und antippen."; return; }
+    if (pictoId == null) { msg.textContent = "Bitte zuerst ein Bild suchen oder ein eigenes Bild wählen."; return; }
     if (!w) { msg.textContent = "Bitte ein Wort eingeben."; return; }
     msg.textContent = "Speichere …";
     try {
-      await ensureImage(pictoId);
+      await storePicture(pictoId, ownBlob);
     } catch (e) {
       msg.textContent = e.message;
       return;
@@ -224,6 +287,8 @@ export function openPageDialog(api, pageId) {
   const page = index >= 0 ? book.pages[index] : null;
   const m = modal(page ? "Seite bearbeiten" : "Neue Seite");
   let iconPictoId = page?.iconPictoId ?? null;
+  let iconBlob = null; // a cropped photo that is stored only when the page is saved
+  const blobUrl = {};
 
   const nameInput = el("input");
   nameInput.type = "text";
@@ -239,11 +304,18 @@ export function openPageDialog(api, pageId) {
     else iconBox.replaceChildren(pictoImg(iconPictoId));
   };
   showIcon(false);
-  const noIcon = button("Kein Symbol", "btn", () => { iconPictoId = null; showIcon(false); });
+  const noIcon = button("Kein Symbol", "btn", () => { iconPictoId = null; iconBlob = null; showIcon(false); });
+  const ownIcon = ownPictureButton((blob) => {
+    iconBlob = blob;
+    iconPictoId = ownPictureId();
+    iconBox.replaceChildren(blobImg(blob, blobUrl));
+    msg.textContent = "";
+  }, (text) => { msg.textContent = text; });
   const iconRow = el("div", "row");
-  iconRow.append(iconBox, noIcon);
+  iconRow.append(iconBox, ownIcon, noIcon);
   const search = searchPanel((r) => {
     iconPictoId = r.id;
+    iconBlob = null;
     showIcon(true);
     if (!nameInput.value.trim()) nameInput.value = r.keyword;
   });
@@ -271,7 +343,7 @@ export function openPageDialog(api, pageId) {
     const name = nameInput.value.trim() || `Seite ${api.getState().book.pages.length + (page ? 0 : 1)}`;
     if (iconPictoId != null) {
       msg.textContent = "Speichere …";
-      try { await ensureImage(iconPictoId); } catch (e) { msg.textContent = e.message; return; }
+      try { await storePicture(iconPictoId, iconBlob); } catch (e) { msg.textContent = e.message; return; }
     }
     try {
       let b = api.getState().book;

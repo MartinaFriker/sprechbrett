@@ -408,3 +408,19 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   font-weight: 600;
   box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
 }
+
+/* ---------- Own pictures and the crop dialog ---------- */
+
+.card-edit-side .own-pic .btn { width: 100%; }
+.cropper { text-align: center; }
+.crop-hint { margin: 0 0 12px; color: #555; }
+.crop-frame {
+  margin: 0 auto;
+  border: 3px solid var(--violet);
+  border-radius: 8px;
+  overflow: hidden;
+  touch-action: none;
+  cursor: grab;
+}
+.crop-frame canvas { display: block; }
+.crop-zoom { display: block; width: min(100%, 420px); margin: 14px auto 0; }

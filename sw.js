@@ -1,6 +1,6 @@
 // Service worker: keeps the app usable offline and installable.
 // Raise VERSION whenever an app file changes, so devices load the new version.
-const VERSION = "v3";
+const VERSION = "v4";
 const APP_CACHE = "sprechbrett-app-" + VERSION;
 
 const APP_FILES = [
@@ -11,6 +11,8 @@ const APP_FILES = [
   "js/arasaac.js",
   "js/backup.js",
   "js/board.js",
+  "js/crop.js",
+  "js/cropper.js",
   "js/gate.js",
   "js/gesture.js",
   "js/icons.js",
