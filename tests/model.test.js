@@ -217,3 +217,15 @@ test("strip colour: white by default (also for old books), can be set to black",
   assert.equal(setStripColor(black, "black"), black);
   assert.throws(() => setStripColor(book, "red"), ModelError);
 });
+
+import { voiceSettings, setVoice } from "../js/model.js";
+
+test("voice settings: defaults for old books, clamped pitch and rate", () => {
+  const book = createBook();
+  assert.deepEqual(voiceSettings(book), { voiceURI: null, pitch: 1, rate: 0.9 });
+  const b2 = setVoice(book, { voiceURI: "com.apple.voice.Anna", pitch: 9, rate: 0.1 });
+  assert.deepEqual(voiceSettings(b2), { voiceURI: "com.apple.voice.Anna", pitch: 2, rate: 0.5 });
+  assert.deepEqual(voiceSettings(book), { voiceURI: null, pitch: 1, rate: 0.9 });
+  assert.equal(setVoice(b2, { pitch: 2 }), b2);
+  assert.equal(voiceSettings(setVoice(b2, { voiceURI: null })).voiceURI, null);
+});

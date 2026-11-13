@@ -2,7 +2,7 @@
 
 import {
   SLOTS_PER_STRIP, MAX_PAGES, cardAt, isOnBoard,
-  takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError, stripColor,
+  takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError, stripColor, voiceSettings,
 } from "./model.js";
 import { classifyGesture } from "./gesture.js";
 import { speakSequence, stopSpeaking } from "./speech.js";
@@ -367,6 +367,7 @@ export function attachBoardEvents(api) {
     speakSequence(book.sentence.map((id) => book.cards[id].word), {
       onWord: highlight,
       onDone: () => highlight(-1),
+      ...voiceSettings(book),
     });
   });
 

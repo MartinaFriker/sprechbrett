@@ -218,6 +218,26 @@ export function setStripColor(book, color) {
   return b;
 }
 
+const DEFAULT_VOICE = { voiceURI: null, pitch: 1, rate: 0.9 };
+const clampNum = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
+
+// Voice for reading the sentence. voiceURI null = pick a German voice automatically.
+// Books saved before this setting existed get the defaults.
+export function voiceSettings(book) {
+  return { ...DEFAULT_VOICE, ...book.settings.voice };
+}
+
+export function setVoice(book, changes) {
+  const cur = voiceSettings(book);
+  const next = { ...cur, ...changes };
+  next.pitch = clampNum(Number(next.pitch), 0.5, 2);
+  next.rate = clampNum(Number(next.rate), 0.5, 1.5);
+  if (next.voiceURI === cur.voiceURI && next.pitch === cur.pitch && next.rate === cur.rate) return book;
+  const b = clone(book);
+  b.settings.voice = next;
+  return b;
+}
+
 export function markBackedUp(book, isoString) {
   const b = clone(book);
   b.lastBackup = isoString;

@@ -3,13 +3,13 @@
 import {
   MAX_PAGES, MIN_STRIPS, MAX_STRIPS, ModelError,
   returnAll, addCard, updateCard, deleteCard, addPage, renamePage, movePage, deletePage,
-  setStripCount, setBackground, setStripColor, stripColor, markBackedUp, backupOverdue, allPictoIds, ownPictureId, isOwnPicture,
+  setStripCount, setBackground, setStripColor, stripColor, voiceSettings, setVoice, markBackedUp, backupOverdue, allPictoIds, ownPictureId, isOwnPicture,
 } from "./model.js";
 import { makeChallenge } from "./gate.js";
 import { searchPictograms, fetchPictogram, imageUrl } from "./arasaac.js";
 import { serializeBackup, parseBackup, collectImages, restoreImageKey } from "./backup.js";
 import { putImage, putImageDataUrl, hasImage, getImageUrl, getImageDataUrl } from "./store.js";
-import { stopSpeaking } from "./speech.js";
+import { stopSpeaking, speakSequence, availableVoices, onVoicesChanged } from "./speech.js";
 import { pictoImg } from "./board.js";
 import { openCropper } from "./cropper.js";
 
@@ -484,6 +484,51 @@ export function openSettings(api) {
   }
   markStripColour();
 
+  // Voice: an installed German voice (or automatic), pitch and speed, with a test sentence.
+  const voiceBox = el("div", "voice-settings");
+  const voiceSelect = el("select", "voice-select");
+  const fillVoices = () => {
+    const chosen = voiceSettings(api.getState().book).voiceURI;
+    const opts = [["", "Automatisch"]].concat(availableVoices().map((v) => [v.voiceURI, `${v.name} (${v.lang})`]));
+    if (chosen && !opts.some(([uri]) => uri === chosen)) opts.push([chosen, "Gewählte Stimme (auf diesem Gerät nicht vorhanden)"]);
+    voiceSelect.replaceChildren(...opts.map(([uri, label]) => {
+      const o = el("option", "", label);
+      o.value = uri;
+      return o;
+    }));
+    voiceSelect.value = chosen ?? "";
+  };
+  fillVoices();
+  const stopListening = onVoicesChanged(fillVoices);
+  m.dlg.addEventListener("close", stopListening);
+  voiceSelect.addEventListener("change", () => {
+    api.update(setVoice(api.getState().book, { voiceURI: voiceSelect.value || null }));
+    prepare();
+  });
+  const slider = (label, key, min, max, left, right) => {
+    const wrap = el("label", "field voice-slider", label);
+    const input = el("input");
+    input.type = "range";
+    input.min = String(min);
+    input.max = String(max);
+    input.step = "0.05";
+    input.value = String(voiceSettings(api.getState().book)[key]);
+    input.addEventListener("change", () => { api.update(setVoice(api.getState().book, { [key]: Number(input.value) })); prepare(); });
+    const ends = el("div", "slider-ends");
+    ends.append(el("span", "", left), el("span", "", right));
+    wrap.append(input, ends);
+    return wrap;
+  };
+  const testVoice = button("Probehören", "btn", () => {
+    speakSequence(["Ich", "möchte", "einen Apfel"], voiceSettings(api.getState().book));
+  });
+  voiceBox.append(
+    voiceSelect,
+    slider("Tonlage", "pitch", 0.5, 2, "tiefer", "höher (kindlicher)"),
+    slider("Tempo", "rate", 0.5, 1.5, "langsamer", "schneller"),
+    testVoice,
+  );
+
   // Backup
   const last = el("p", "", backupText(api.getState().book));
   const fileInput = el("input");
@@ -542,6 +587,7 @@ export function openSettings(api) {
     el("h3", "", "Hintergrundfarbe"), colours,
     el("h3", "", "Anzahl Streifen"), strips,
     el("h3", "", "Farbe der Klettstreifen"), stripColours,
+    el("h3", "", "Stimme"), voiceBox,
     msg,
     el("h3", "", "Sicherung"), last, backupRow,
     el("p", "attribution", ATTRIBUTION),

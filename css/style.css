@@ -440,3 +440,11 @@ body.black-strips { --strip: #1E1E1E; }
 }
 .crop-frame canvas { display: block; }
 .crop-zoom { display: block; width: min(100%, 420px); margin: 14px auto 0; }
+
+/* ---------- Voice settings ---------- */
+
+.voice-settings { display: flex; flex-direction: column; gap: 12px; align-items: flex-start; }
+.voice-select { font: inherit; font-size: 17px; padding: 8px 10px; border-radius: 10px; border: 2px solid #ccc; max-width: 100%; }
+.voice-slider { width: min(100%, 420px); }
+.voice-slider input { width: 100%; }
+.slider-ends { display: flex; justify-content: space-between; font-size: 13px; font-weight: 400; color: #666; }

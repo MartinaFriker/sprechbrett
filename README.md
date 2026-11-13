@@ -47,6 +47,15 @@ Eigene Bilder liegen nur auf dem Gerät und in der Sicherungsdatei. Anders als
 die Piktogramme lassen sie sich nicht aus dem Internet nachladen.
 HEIC-Fotos öffnen am Mac nur in Safari; sonst JPG oder PNG verwenden.
 
+## Stimme
+
+Unter **Einstellungen → Stimme** wählt man eine der deutschen Stimmen, die auf
+dem iPad installiert sind (oder „Automatisch“), und stellt Tonlage und Tempo
+ein. Eine höhere Tonlage klingt kindlicher. „Probehören“ spricht einen
+Beispielsatz. Weitere und bessere Stimmen lädt man gratis unter
+*Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Deutsch*.
+Danach die App einmal ganz schliessen und neu öffnen.
+
 ## Sicherung
 
 Alle Karten und Bilder sind nur auf diesem iPad gespeichert. Im Eltern-Bereich
