@@ -1,14 +1,17 @@
 // Hand-drawn SVG pictograms for the app's own buttons.
 
-// Open mouth with sound waves: "speak".
-export const ICON_MOUTH = `
+// Open mouth with a speech bubble: "speak".
+export const ICON_SPEAK = `
 <svg viewBox="0 0 120 100" aria-hidden="true">
-  <path d="M10 50 C22 26 46 22 56 32 C66 22 90 26 100 50 C88 80 22 80 10 50 Z"
+  <path d="M60 6 H108 a8 8 0 0 1 8 8 V44 a8 8 0 0 1 -8 8 H82 L68 64 L71 52 H60 a8 8 0 0 1 -8 -8 V14 a8 8 0 0 1 8 -8 Z"
+        fill="#fff" stroke="#222" stroke-width="4" stroke-linejoin="round"/>
+  <circle cx="70" cy="29" r="4.5" fill="#222"/>
+  <circle cx="84" cy="29" r="4.5" fill="#222"/>
+  <circle cx="98" cy="29" r="4.5" fill="#222"/>
+  <path d="M4 66 C14 46 34 42 42 51 C50 42 70 46 80 66 C70 92 14 92 4 66 Z"
         fill="#e0403a" stroke="#222" stroke-width="4" stroke-linejoin="round"/>
-  <path d="M20 50 C34 42 76 42 90 50 C78 68 32 68 20 50 Z" fill="#5b1616" stroke="#222" stroke-width="3"/>
-  <path d="M28 47 C42 43 68 43 82 47 L80 53 C66 50 44 50 30 53 Z" fill="#fff"/>
-  <path d="M104 36 Q112 50 104 64" fill="none" stroke="#222" stroke-width="4" stroke-linecap="round"/>
-  <path d="M110 28 Q122 50 110 72" fill="none" stroke="#222" stroke-width="4" stroke-linecap="round"/>
+  <path d="M12 66 C24 59 60 59 72 66 C62 82 22 82 12 66 Z" fill="#5b1616" stroke="#222" stroke-width="3"/>
+  <path d="M19 63.5 C31 60 53 60 65 63.5 L63 68.5 C51 66 33 66 21 68.5 Z" fill="#fff"/>
 </svg>`;
 
 // Three cards with arrows flying back up: "put all cards back".

@@ -3,7 +3,7 @@
 import {
   MAX_PAGES, MIN_STRIPS, MAX_STRIPS, ModelError,
   returnAll, addCard, updateCard, deleteCard, addPage, renamePage, movePage, deletePage,
-  setStripCount, setBackground, markBackedUp, backupOverdue, allPictoIds, ownPictureId, isOwnPicture,
+  setStripCount, setBackground, setStripColor, stripColor, markBackedUp, backupOverdue, allPictoIds, ownPictureId, isOwnPicture,
 } from "./model.js";
 import { makeChallenge } from "./gate.js";
 import { searchPictograms, fetchPictogram, imageUrl } from "./arasaac.js";
@@ -469,6 +469,21 @@ export function openSettings(api) {
   strips.append(button("−", "btn round", step(-1)), count, button("+", "btn round", step(1)));
   showCount();
 
+  // Strip colour: white or black hook-and-loop strips, like the analogue boards.
+  const stripColours = el("div", "row strip-colours");
+  const markStripColour = () => stripColours.querySelectorAll(".strip-colour")
+    .forEach((b) => b.classList.toggle("selected", b.dataset.color === stripColor(api.getState().book)));
+  for (const [color, label] of [["white", "Weiss"], ["black", "Schwarz"]]) {
+    const b = button(label, "btn strip-colour", () => {
+      api.update(setStripColor(api.getState().book, color));
+      markStripColour();
+      prepare();
+    });
+    b.dataset.color = color;
+    stripColours.append(b);
+  }
+  markStripColour();
+
   // Backup
   const last = el("p", "", backupText(api.getState().book));
   const fileInput = el("input");
@@ -525,7 +540,8 @@ export function openSettings(api) {
 
   m.body.append(
     el("h3", "", "Hintergrundfarbe"), colours,
-    el("h3", "", "Anzahl weisse Streifen"), strips,
+    el("h3", "", "Anzahl Streifen"), strips,
+    el("h3", "", "Farbe der Klettstreifen"), stripColours,
     msg,
     el("h3", "", "Sicherung"), last, backupRow,
     el("p", "attribution", ATTRIBUTION),

@@ -8,8 +8,9 @@ export function cardSizes({ width, height, strips, toolbar = 0, gap = 8, barPad 
   // Width: every strip must fit beside the tab column.
   const byWidth = (width - tabsW - 6 * gap) / strips - 3 * gap;
   const card = Math.floor(Math.min(byHeight, byWidth, 170));
-  // Sentence bar: 8 cards + speak button (1 card) + return button (0.8 card) + paddings/gaps.
-  const fixed = 4 * barPad + 4 * gap + 4 * gap + (SENTENCE_MAX + 1) * gap;
-  const scard = Math.floor(Math.min(card, (width - fixed) / (SENTENCE_MAX + 1.8)));
+  // Sentence bar: bar padding, two bar gaps, two round buttons (one card + 2 gaps each),
+  // the strip's own padding and the gaps between its 8 cards.
+  const fixed = 4 * barPad + 2 * 2 * gap + 2 * 2 * gap + 2 * gap + (SENTENCE_MAX - 1) * gap;
+  const scard = Math.floor(Math.min(card, (width - fixed) / (SENTENCE_MAX + 2)));
   return { card, scard };
 }

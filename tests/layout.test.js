@@ -8,7 +8,7 @@ const used = ({ card, scard }, toolbar = 0) =>
   toolbar + 2 * GAP + 5 * card + 6 * GAP + scard + 2 * GAP + 2 * BAR_PAD;
 
 test("iPad landscape 1180x820 with 4 strips", () => {
-  assert.deepEqual(cardSizes({ width: 1180, height: 820, strips: 4 }), { card: 119, scard: 101 });
+  assert.deepEqual(cardSizes({ width: 1180, height: 820, strips: 4 }), { card: 119, scard: 99 });
 });
 
 test("everything fits vertically, also with safe-area insets and the parent toolbar", () => {
@@ -27,4 +27,12 @@ test("less height (safe-area insets) gives smaller cards", () => {
 test("8 strips are limited by width", () => {
   const s = cardSizes({ width: 1024, height: 768, strips: 8 });
   assert.ok(8 * (s.card + 3 * GAP) + 132 + 6 * GAP <= 1024);
+});
+
+test("sentence bar: 8 cards plus two equal round buttons fit the width", () => {
+  for (const width of [1024, 1133, 1180, 1366]) {
+    const { scard } = cardSizes({ width, height: 820, strips: 4 });
+    const bar = 4 * BAR_PAD + 2 * 2 * GAP + 2 * (scard + 2 * GAP) + 2 * GAP + 8 * scard + 7 * GAP;
+    assert.ok(bar <= width, `width ${width}: ${bar}`);
+  }
 });

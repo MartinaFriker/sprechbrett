@@ -202,3 +202,18 @@ test("ownPictureId makes a string id that isOwnPicture recognises", () => {
   assert.equal(isOwnPicture(2462), false);
   assert.equal(isOwnPicture(null), false);
 });
+
+import { setStripColor, stripColor } from "../js/model.js";
+
+test("strip colour: white by default (also for old books), can be set to black", () => {
+  const book = createBook();
+  assert.equal(stripColor(book), "white");
+  const old = structuredClone(book);
+  delete old.settings.stripColor;
+  assert.equal(stripColor(old), "white");
+  const black = setStripColor(book, "black");
+  assert.equal(stripColor(black), "black");
+  assert.equal(stripColor(book), "white");
+  assert.equal(setStripColor(black, "black"), black);
+  assert.throws(() => setStripColor(book, "red"), ModelError);
+});

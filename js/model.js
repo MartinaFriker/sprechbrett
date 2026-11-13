@@ -37,7 +37,7 @@ export function isOwnPicture(id) {
 export function createBook() {
   return {
     version: 1,
-    settings: { background: "#F39200", stripCount: 4 },
+    settings: { background: "#F39200", stripCount: 4, stripColor: "white" },
     pages: [{ id: newId(), name: "Seite 1", iconPictoId: null }],
     cards: {},
     sentence: [],
@@ -200,6 +200,21 @@ export function setBackground(book, color) {
   if (book.settings.background === color) return book;
   const b = clone(book);
   b.settings.background = color;
+  return b;
+}
+
+export const STRIP_COLORS = ["white", "black"];
+
+// Books saved before this setting existed have no stripColor: they keep white strips.
+export function stripColor(book) {
+  return book.settings.stripColor ?? "white";
+}
+
+export function setStripColor(book, color) {
+  if (!STRIP_COLORS.includes(color)) throw new ModelError("Diese Streifenfarbe gibt es nicht.");
+  if (stripColor(book) === color) return book;
+  const b = clone(book);
+  b.settings.stripColor = color;
   return b;
 }
 

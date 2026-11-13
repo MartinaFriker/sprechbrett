@@ -2,12 +2,12 @@
 
 import {
   SLOTS_PER_STRIP, MAX_PAGES, cardAt, isOnBoard,
-  takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError,
+  takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError, stripColor,
 } from "./model.js";
 import { classifyGesture } from "./gesture.js";
 import { speakSequence, stopSpeaking } from "./speech.js";
 import { cachedImageUrl, getImageUrl } from "./store.js";
-import { ICON_MOUTH, ICON_RETURN_ALL, ICON_GEAR, ICON_PLUS } from "./icons.js";
+import { ICON_SPEAK, ICON_RETURN_ALL, ICON_GEAR, ICON_PLUS } from "./icons.js";
 
 const $ = (id) => document.getElementById(id);
 
@@ -119,11 +119,12 @@ function renderToolbar(state) {
 export function renderBoard(state) {
   document.documentElement.style.setProperty("--board-bg", state.book.settings.background);
   document.body.classList.toggle("parent-mode", state.mode === "parent");
+  document.body.classList.toggle("black-strips", stripColor(state.book) === "black");
   renderToolbar(state);
   renderStrips(state);
   renderTabs(state);
   renderSentence(state);
-  if (!$("btn-speak").firstChild) $("btn-speak").innerHTML = ICON_MOUTH;
+  if (!$("btn-speak").firstChild) $("btn-speak").innerHTML = ICON_SPEAK;
   if (!$("btn-return-all").firstChild) $("btn-return-all").innerHTML = ICON_RETURN_ALL;
 }
 
