@@ -39,3 +39,8 @@ export async function collectImages(ids, getDataUrl) {
   });
   return { images, missing };
 }
+
+// JSON object keys are always strings: turn ARASAAC ids back into numbers, keep own ids.
+export function restoreImageKey(key) {
+  return /^\d+$/.test(key) ? Number(key) : key;
+}

@@ -191,3 +191,14 @@ test("newId works without crypto.randomUUID (plain http on the iPad)", () => {
     if (crypto.randomUUID !== orig) Object.defineProperty(crypto, "randomUUID", { value: orig, configurable: true, writable: true });
   }
 });
+
+import { ownPictureId, isOwnPicture } from "../js/model.js";
+
+test("ownPictureId makes a string id that isOwnPicture recognises", () => {
+  const id = ownPictureId();
+  assert.match(id, /^own-[0-9a-f-]{36}$/);
+  assert.notEqual(ownPictureId(), id);
+  assert.equal(isOwnPicture(id), true);
+  assert.equal(isOwnPicture(2462), false);
+  assert.equal(isOwnPicture(null), false);
+});

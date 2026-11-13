@@ -3,11 +3,11 @@
 import {
   MAX_PAGES, MIN_STRIPS, MAX_STRIPS, ModelError,
   returnAll, addCard, updateCard, deleteCard, addPage, renamePage, movePage, deletePage,
-  setStripCount, setBackground, markBackedUp, backupOverdue, allPictoIds,
+  setStripCount, setBackground, markBackedUp, backupOverdue, allPictoIds, ownPictureId, isOwnPicture,
 } from "./model.js";
 import { makeChallenge } from "./gate.js";
 import { searchPictograms, fetchPictogram, imageUrl } from "./arasaac.js";
-import { serializeBackup, parseBackup, collectImages } from "./backup.js";
+import { serializeBackup, parseBackup, collectImages, restoreImageKey } from "./backup.js";
 import { putImage, putImageDataUrl, hasImage, getImageUrl, getImageDataUrl } from "./store.js";
 import { stopSpeaking } from "./speech.js";
 import { pictoImg } from "./board.js";
@@ -51,7 +51,11 @@ export function toast(message) {
 
 // Make sure a pictogram is stored on the device (for offline use) and loaded.
 async function ensureImage(id) {
-  if (!(await hasImage(id))) await putImage(id, await fetchPictogram(id));
+  if (!(await hasImage(id))) {
+    // Own photos cannot be downloaded again; only a backup can bring them back.
+    if (isOwnPicture(id)) throw new Error("Das eigene Bild fehlt auf dem Gerät.");
+    await putImage(id, await fetchPictogram(id));
+  }
   await getImageUrl(id);
 }
 
@@ -342,7 +346,7 @@ function shareBackup(api, prepared) {
 async function importBackup(api, file) {
   const { book, images } = parseBackup(await file.text());
   if (!confirm("Das aktuelle Buch wird ersetzt. Weiter?")) return false;
-  for (const [id, dataUrl] of Object.entries(images)) await putImageDataUrl(Number(id), dataUrl);
+  for (const [id, dataUrl] of Object.entries(images)) await putImageDataUrl(restoreImageKey(id), dataUrl);
   await Promise.all(allPictoIds(book).map((id) => getImageUrl(id).catch(() => null)));
   api.update(returnAll(book));
   api.setPage(book.pages[0].id);

@@ -30,3 +30,10 @@ test("collectImages gathers data URLs and reports missing pictures", async () =>
   const r = await collectImages([1, 2, 3], async (id) => store[id] ?? null);
   assert.deepEqual(r, { images: { 1: "data:a", 3: "data:c" }, missing: [2] });
 });
+
+import { restoreImageKey } from "../js/backup.js";
+
+test("restoreImageKey: digits become ARASAAC numbers, own ids stay strings", () => {
+  assert.equal(restoreImageKey("2462"), 2462);
+  assert.equal(restoreImageKey("own-ab12"), "own-ab12");
+});

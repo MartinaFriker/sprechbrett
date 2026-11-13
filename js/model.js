@@ -26,6 +26,14 @@ export function newId() {
 }
 const clone = (book) => structuredClone(book);
 
+// Own photos use string ids "own-<uuid>"; ARASAAC pictograms keep their numeric ids.
+export function ownPictureId() {
+  return "own-" + newId();
+}
+export function isOwnPicture(id) {
+  return typeof id === "string" && id.startsWith("own-");
+}
+
 export function createBook() {
   return {
     version: 1,
