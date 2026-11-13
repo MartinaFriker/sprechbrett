@@ -1,17 +1,16 @@
 // Hand-drawn SVG pictograms for the app's own buttons.
 
-// Open mouth with a speech bubble: "speak".
+// Open mouth with an empty round speech bubble: "speak".
 export const ICON_SPEAK = `
 <svg viewBox="0 0 120 100" aria-hidden="true">
-  <path d="M60 6 H108 a8 8 0 0 1 8 8 V44 a8 8 0 0 1 -8 8 H82 L68 64 L71 52 H60 a8 8 0 0 1 -8 -8 V14 a8 8 0 0 1 8 -8 Z"
-        fill="#fff" stroke="#222" stroke-width="4" stroke-linejoin="round"/>
-  <circle cx="70" cy="29" r="4.5" fill="#222"/>
-  <circle cx="84" cy="29" r="4.5" fill="#222"/>
-  <circle cx="98" cy="29" r="4.5" fill="#222"/>
   <path d="M4 66 C14 46 34 42 42 51 C50 42 70 46 80 66 C70 92 14 92 4 66 Z"
         fill="#e0403a" stroke="#222" stroke-width="4" stroke-linejoin="round"/>
   <path d="M12 66 C24 59 60 59 72 66 C62 82 22 82 12 66 Z" fill="#5b1616" stroke="#222" stroke-width="3"/>
   <path d="M19 63.5 C31 60 53 60 65 63.5 L63 68.5 C51 66 33 66 21 68.5 Z" fill="#fff"/>
+  <ellipse cx="86" cy="28" rx="30" ry="22" fill="#fff" stroke="#222" stroke-width="4"/>
+  <path d="M64.8 43.6 L54 56 L75.7 48.7 L72 40 Z" fill="#fff"/>
+  <path d="M64.8 43.6 L54 56 L75.7 48.7" fill="none" stroke="#222" stroke-width="4"
+        stroke-linejoin="round" stroke-linecap="round"/>
 </svg>`;
 
 // Three cards with arrows flying back up: "put all cards back".
