@@ -3,8 +3,11 @@
 import { createBook, allPictoIds, SLOTS_PER_STRIP, SENTENCE_MAX } from "./model.js";
 import { loadBook, saveBook, getImageUrl, requestPersistence } from "./store.js";
 import { renderBoard, attachBoardEvents } from "./board.js";
+import { initParent } from "./parent.js";
 
-export const state = { book: null, mode: "kid", pageId: null };
+export const state = { book: null, mode: "kid", pageId: null, showBackupBanner: false };
+
+const TOOLBAR_H = 48;
 
 let saveTimer = null;
 function scheduleSave() {
@@ -49,7 +52,9 @@ function layout() {
   const strips = state.book.settings.stripCount;
 
   // Height: board padding + 5 cards with gaps around them, plus the sentence bar (one card high).
-  const byHeight = (H - 2 * gap - (SLOTS_PER_STRIP + 1) * gap - 2 * barPad - 2 * gap) / (SLOTS_PER_STRIP + 1);
+  // In parent mode the toolbar sits above the strips and takes some height.
+  const toolbar = state.mode === "parent" ? TOOLBAR_H : 0;
+  const byHeight = (H - toolbar - 2 * gap - (SLOTS_PER_STRIP + 1) * gap - 2 * barPad - 2 * gap) / (SLOTS_PER_STRIP + 1);
   // Width: every strip must fit beside the tab column.
   const byWidth = (W - tabsW - 6 * gap) / strips - 3 * gap;
   const card = Math.floor(Math.min(byHeight, byWidth, 170));
@@ -61,6 +66,7 @@ function layout() {
   const root = document.documentElement.style;
   root.setProperty("--card", card + "px");
   root.setProperty("--scard", scard + "px");
+  root.setProperty("--toolbar-h", toolbar + "px");
 }
 
 export function render() {
@@ -82,7 +88,9 @@ async function start() {
   state.book = book;
   state.pageId = book.pages[0].id;
   requestPersistence();
-  attachBoardEvents({ getState: () => state, update, setPage });
+  const api = { getState: () => state, update, setPage, setMode, render };
+  attachBoardEvents(api);
+  initParent(api);
   render();
   // Load all pictures once so re-renders can show them without flicker.
   await Promise.all(allPictoIds(book).map((id) => getImageUrl(id).catch(() => null)));

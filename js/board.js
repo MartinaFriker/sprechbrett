@@ -1,7 +1,7 @@
 // Kid mode: renders the board (strips, tabs) and the sentence strip.
 
 import {
-  SLOTS_PER_STRIP, cardAt, isOnBoard,
+  SLOTS_PER_STRIP, MAX_PAGES, cardAt, isOnBoard,
   takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError,
 } from "./model.js";
 import { classifyGesture } from "./gesture.js";
@@ -70,7 +70,17 @@ function renderTabs(state) {
     const name = el("span");
     name.textContent = page.name;
     tab.append(name);
+    if (state.mode === "parent" && page.id === pageId) {
+      const edit = el("span", "tab-edit");
+      edit.textContent = "✎";
+      tab.append(edit);
+    }
     root.append(tab);
+  }
+  if (state.mode === "parent" && book.pages.length < MAX_PAGES) {
+    const add = el("button", "tab add", { type: "button", "aria-label": "Seite hinzufügen" });
+    add.textContent = "+ Seite";
+    root.append(add);
   }
 }
 
@@ -83,15 +93,32 @@ function renderSentence(state) {
 function renderToolbar(state) {
   const root = $("toolbar");
   if (state.mode === "kid") {
-    const gear = el("button", "gear", { type: "button", "aria-label": "Einstellungen" });
-    gear.id = "btn-gear";
+    const gear = el("button", "gear", { type: "button", "aria-label": "Eltern-Bereich", id: "btn-gear" });
     gear.innerHTML = ICON_GEAR;
     root.replaceChildren(gear);
+    return;
   }
+  const settings = el("button", "pill", { type: "button", id: "btn-settings" });
+  settings.textContent = "Einstellungen";
+  const done = el("button", "pill primary", { type: "button", id: "btn-done" });
+  done.textContent = "Fertig";
+  const items = [done, settings];
+  if (state.showBackupBanner) {
+    const banner = el("div", "banner");
+    banner.textContent = "Seit über 30 Tagen keine Sicherung. ";
+    const now = el("button", "pill", { type: "button", id: "btn-backup-now" });
+    now.textContent = "Jetzt sichern";
+    const close = el("button", "pill", { type: "button", id: "btn-banner-close", "aria-label": "Hinweis schliessen" });
+    close.textContent = "✕";
+    banner.append(now, close);
+    items.push(banner);
+  }
+  root.replaceChildren(...items);
 }
 
 export function renderBoard(state) {
   document.documentElement.style.setProperty("--board-bg", state.book.settings.background);
+  document.body.classList.toggle("parent-mode", state.mode === "parent");
   renderToolbar(state);
   renderStrips(state);
   renderTabs(state);
@@ -283,8 +310,19 @@ export function attachBoardEvents(api) {
   document.addEventListener("pointercancel", end);
 
   $("tabs").addEventListener("click", (e) => {
+    const { mode, pageId } = getState();
+    if (e.target.closest(".tab.add")) { api.onAddPage?.(); return; }
     const tab = e.target.closest(".tab[data-page]");
-    if (tab) api.setPage(tab.dataset.page);
+    if (!tab) return;
+    if (mode === "parent" && tab.dataset.page === pageId) api.onEditPage?.(pageId);
+    else api.setPage(tab.dataset.page);
+  });
+
+  $("strips").addEventListener("click", (e) => {
+    const plus = e.target.closest(".plus");
+    if (!plus || getState().mode !== "parent") return;
+    const slot = plus.closest(".slot");
+    api.onAddCard?.(+slot.dataset.strip, +slot.dataset.slot);
   });
 
   $("btn-speak").addEventListener("click", () => {
