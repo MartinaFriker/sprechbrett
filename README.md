@@ -39,7 +39,9 @@ Im Karten-Fenster und im Seiten-Fenster gibt es den Knopf **„Eigenes Bild …�
 Auf dem iPad wählt man ein Foto aus der Fotomediathek, macht eines mit der
 Kamera oder holt eines aus „Dateien“; am Mac öffnet sich der Finder. Danach
 wählt man den quadratischen Ausschnitt: mit einem Finger verschieben, mit zwei
-Fingern (oder dem Regler) vergrössern. Das Wort tippt man selbst ein.
+Fingern (oder dem Regler) vergrössern oder verkleinern. Der Regler startet in der
+Mitte; ganz links passt das ganze Foto mit weissem Rand auf die Karte.
+Das Wort tippt man selbst ein.
 
 Eigene Bilder liegen nur auf dem Gerät und in der Sicherungsdatei. Anders als
 die Piktogramme lassen sie sich nicht aus dem Internet nachladen.

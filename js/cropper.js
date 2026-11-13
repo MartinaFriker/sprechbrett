@@ -1,7 +1,7 @@
 // Crop dialog for own photos: pan with one finger, pinch with two, or use the slider.
 // Resolves with a square JPEG blob, or null when the parent goes back.
 
-import { initialView, clampView, zoomAt, sourceRect, MAX_ZOOM } from "./crop.js";
+import { initialView, clampView, zoomAt, scaleRange, sliderToScale, scaleToSlider } from "./crop.js";
 
 export const OUTPUT_PX = 600;
 const DECODE_ERROR = "Dieses Bild kann hier nicht geöffnet werden. Bitte ein JPG- oder PNG-Bild wählen.";
@@ -39,14 +39,16 @@ function el(tag, className, text) {
 
 // Draw the chosen square onto a white canvas and encode it as JPEG.
 function render(source, view, frame) {
-  const { sx, sy, size } = sourceRect(view, frame);
+  // Draw the whole photo scaled from frame to output pixels: when zoomed out the photo
+  // is smaller than the frame, and a source rectangle outside the image is unreliable in Safari.
+  const k = OUTPUT_PX / frame;
   const canvas = document.createElement("canvas");
   canvas.width = canvas.height = OUTPUT_PX;
   const ctx = canvas.getContext("2d");
   ctx.fillStyle = "#fff";
   ctx.fillRect(0, 0, OUTPUT_PX, OUTPUT_PX);
   ctx.imageSmoothingQuality = "high";
-  ctx.drawImage(source, sx, sy, size, size, 0, 0, OUTPUT_PX, OUTPUT_PX);
+  ctx.drawImage(source, view.x * k, view.y * k, source.width * view.scale * k, source.height * view.scale * k);
   return new Promise((resolve, reject) =>
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(DECODE_ERROR))), "image/jpeg", 0.85));
 }
@@ -78,7 +80,7 @@ export async function openCropper(file) {
 
   const dlg = el("dialog", "dlg cropper");
   dlg.append(el("h2", "", "Ausschnitt wählen"));
-  const hint = el("p", "crop-hint", "Bild mit dem Finger verschieben, mit zwei Fingern vergrössern.");
+  const hint = el("p", "crop-hint", "Bild mit dem Finger verschieben, mit zwei Fingern oder dem Regler grösser oder kleiner machen.");
   const box = el("div", "crop-frame");
   box.style.width = box.style.height = frame + "px";
   const canvas = document.createElement("canvas");
@@ -88,9 +90,10 @@ export async function openCropper(file) {
   box.append(canvas);
   const slider = el("input", "crop-zoom");
   slider.type = "range";
-  slider.min = "1";
-  slider.max = String(MAX_ZOOM);
-  slider.step = "0.01";
+  // 0 = smallest, 0.5 = photo just fills the frame (start), 1 = largest.
+  slider.min = "0";
+  slider.max = "1";
+  slider.step = "0.005";
   slider.setAttribute("aria-label", "Zoom");
   const actions = el("div", "dlg-actions");
   const back = el("button", "btn", "Zurück");
@@ -101,14 +104,14 @@ export async function openCropper(file) {
   document.body.append(dlg);
 
   let view = initialView(w, h, frame);
-  const minScale = view.scale;
+  const range = scaleRange(w, h, frame);
   const ctx = canvas.getContext("2d");
   const draw = () => {
     ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
     ctx.fillStyle = "#fff";
     ctx.fillRect(0, 0, frame, frame);
     ctx.drawImage(source, view.x, view.y, w * view.scale, h * view.scale);
-    slider.value = String(view.scale / minScale);
+    slider.value = String(scaleToSlider(view.scale, range));
   };
   draw();
 
@@ -154,7 +157,7 @@ export async function openCropper(file) {
     draw();
   }, { passive: false });
   slider.addEventListener("input", () => {
-    const target = Number(slider.value) * minScale;
+    const target = sliderToScale(Number(slider.value), range);
     view = zoomAt(view, target / view.scale, frame / 2, frame / 2, w, h, frame);
     draw();
   });
