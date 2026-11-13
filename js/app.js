@@ -103,3 +103,7 @@ document.addEventListener("visibilitychange", () => {
 });
 
 start();
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js").catch((e) => console.warn("Service Worker nicht registriert", e));
+}

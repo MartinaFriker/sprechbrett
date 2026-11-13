@@ -1,0 +1,19 @@
+{
+  "name": "Sprechbrett",
+  "short_name": "Sprechbrett",
+  "description": "Kommunikationsbrett mit Bildkarten: Karten auf den Satzstreifen legen und vorlesen lassen.",
+  "lang": "de",
+  "id": "./",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "landscape",
+  "background_color": "#F39200",
+  "theme_color": "#F39200",
+  "categories": ["education", "medical", "kids"],
+  "icons": [
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}
