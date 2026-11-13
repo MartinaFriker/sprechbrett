@@ -79,7 +79,11 @@ Violett unten, weisse Streifen). Die Hintergrundfarbe oben ist einstellbar.
   sie geht an ihren **ursprünglichen Platz** (Seite, Streifen, Position)
   zurück.
 - **„Alles zurück“** legt alle Karten aus dem Satzstreifen an ihre Plätze
-  zurück.
+  zurück. Die Taste trägt ein Piktogramm statt Text: drei kleine Kärtchen
+  nebeneinander, über jedem ein Pfeil nach oben; der linke Pfeil leicht nach
+  links geneigt, der rechte leicht nach rechts (Karten „fliegen“ zurück auf
+  das Brett). Als eigenes SVG gezeichnet. Einfachere Rückfallvariante, falls
+  es zu klein unlesbar wird: ein Kärtchen mit einem Pfeil nach oben.
 - **Sprechen:** liest die Wörter der Karten im Satzstreifen von links nach
   rechts vor (Web Speech API, deutsche Stimme). Die gerade gesprochene Karte
   wird kurz hervorgehoben. Die Karten bleiben danach liegen.
