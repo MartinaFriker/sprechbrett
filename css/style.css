@@ -211,14 +211,26 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 .sentence-strip {
   flex: 1;
   height: calc(var(--scard) + 2 * var(--gap));
-  background: var(--white);
-  border-radius: 4px;
+  position: relative;
   display: flex;
   align-items: center;
   gap: var(--gap);
   padding: 0 var(--gap);
   overflow: hidden;
 }
+/* The hook-and-loop strip itself: half as high as the cards, like the strips on top. */
+.sentence-strip::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: calc((var(--scard) + 2 * var(--gap)) / 2);
+  transform: translateY(-50%);
+  background: var(--strip);
+  border-radius: 3px;
+}
+.sentence-strip > * { position: relative; }
 .sentence-strip.shake { animation: shake .35s; }
 @keyframes shake {
   20%, 60% { transform: translateX(-8px); }
@@ -229,7 +241,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   width: 6px;
   align-self: stretch;
   margin: var(--gap) 0;
-  background: var(--violet);
+  /* Yellow stays visible on the violet bar and on white or black strips. */
+  background: #FFD400;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
   border-radius: 3px;
 }
 

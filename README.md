@@ -3,7 +3,7 @@
 Ein digitales Kommunikationsbrett mit Bildkarten für das iPad, nach dem Vorbild
 eines analogen Bildkarten-Kommunikationsbuchs.
 
-- **Oben (orange):** schmale senkrechte Klettstreifen (weiss oder schwarz) mit Bildkarten. Rechts am Rand
+- **Oben (orange):** schmale senkrechte Klettstreifen (weiss oder schwarz, wie der Satzstreifen unten) mit Bildkarten. Rechts am Rand
   sind Register-Reiter, über die man zwischen den Seiten blättert.
 - **Unten (violett):** der Satzstreifen. Das Kind zieht Karten hierher oder
   tippt sie an. Die Taste links (Mund mit Sprechblase) liest den Satz von
