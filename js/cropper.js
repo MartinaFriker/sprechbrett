@@ -10,7 +10,8 @@ const DECODE_ERROR = "Dieses Bild kann hier nicht geöffnet werden. Bitte ein JP
 async function decode(file) {
   if (typeof createImageBitmap === "function") {
     try {
-      return await createImageBitmap(file);
+      // Ask explicitly for EXIF orientation; if a browser rejects the option, the <img> path below applies it.
+      return await createImageBitmap(file, { imageOrientation: "from-image" });
     } catch {
       // Fall through to <img>: some browsers decode more formats that way.
     }
@@ -50,10 +51,29 @@ function render(source, view, frame) {
     canvas.toBlob((b) => (b ? resolve(b) : reject(new Error(DECODE_ERROR))), "image/jpeg", 0.85));
 }
 
+// Album photos can have 12-48 megapixels; redrawing that on every finger move is slow
+// and memory hungry on an iPad. Keep at most MAX_SOURCE_PX on the long side, which
+// still gives full output detail at the highest zoom.
+const MAX_SOURCE_PX = 3000;
+function shrink(img) {
+  const long = Math.max(img.width, img.height);
+  if (long <= MAX_SOURCE_PX) return img;
+  const k = MAX_SOURCE_PX / long;
+  const c = document.createElement("canvas");
+  c.width = Math.round(img.width * k);
+  c.height = Math.round(img.height * k);
+  const ctx = c.getContext("2d");
+  ctx.imageSmoothingQuality = "high";
+  ctx.drawImage(img, 0, 0, c.width, c.height);
+  img.close?.();
+  return c;
+}
+
 export async function openCropper(file) {
-  const source = await decode(file);
+  const decoded = await decode(file);
+  if (!decoded.width || !decoded.height) throw new Error(DECODE_ERROR);
+  const source = shrink(decoded);
   const w = source.width, h = source.height;
-  if (!w || !h) throw new Error(DECODE_ERROR);
   const frame = Math.round(Math.min(window.innerHeight * 0.6, window.innerWidth * 0.8, 420));
 
   const dlg = el("dialog", "dlg cropper");
