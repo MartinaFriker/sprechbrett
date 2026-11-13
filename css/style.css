@@ -89,11 +89,12 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   flex-direction: column;
   align-items: center;
   justify-content: space-between;
-  padding: 5% 4% 3%;
+  --size: var(--card);
+  padding: calc(var(--size) * .05) calc(var(--size) * .04) calc(var(--size) * .03);
   box-shadow: 0 2px 4px rgba(0, 0, 0, .25);
   cursor: grab;
 }
-#sentence .card { width: var(--scard); height: var(--scard); }
+#sentence .card { --size: var(--scard); width: var(--scard); height: var(--scard); }
 
 .card .pic {
   flex: 1;
@@ -111,14 +112,13 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 }
 .card .word {
   font-weight: 700;
-  font-size: calc(var(--card) * .15);
+  font-size: calc(var(--size) * .15);
   line-height: 1.1;
   max-width: 100%;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
 }
-#sentence .card .word { font-size: calc(var(--scard) * .15); }
 
 .card.speaking {
   outline: 5px solid #FFD400;

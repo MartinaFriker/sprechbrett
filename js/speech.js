@@ -5,12 +5,16 @@
 let token = 0;
 let voice = null;
 
+// Novelty voices on Apple devices that sound odd for a child's sentence.
+const NOVELTY = /Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley|Bad News|Bells|Boing|Bubbles|Cellos|Good News|Jester|Organ|Superstar|Trinoids|Whisper|Wobble|Zarvox/;
+
 function pickVoice() {
-  const voices = speechSynthesis.getVoices();
+  const voices = speechSynthesis.getVoices().filter((v) => !NOVELTY.test(v.name));
   voice =
     voices.find((v) => v.lang === "de-CH") ||
     voices.find((v) => v.lang === "de-DE" && v.localService) ||
     voices.find((v) => v.lang?.startsWith("de")) ||
+    speechSynthesis.getVoices().find((v) => v.lang?.startsWith("de")) ||
     null;
 }
 

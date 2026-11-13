@@ -2,7 +2,7 @@
 
 import { createBook, allPictoIds, SLOTS_PER_STRIP, SENTENCE_MAX } from "./model.js";
 import { loadBook, saveBook, getImageUrl, requestPersistence } from "./store.js";
-import { renderBoard } from "./board.js";
+import { renderBoard, attachBoardEvents } from "./board.js";
 
 export const state = { book: null, mode: "kid", pageId: null };
 
@@ -82,6 +82,7 @@ async function start() {
   state.book = book;
   state.pageId = book.pages[0].id;
   requestPersistence();
+  attachBoardEvents({ getState: () => state, update, setPage });
   render();
   // Load all pictures once so re-renders can show them without flicker.
   await Promise.all(allPictoIds(book).map((id) => getImageUrl(id).catch(() => null)));
