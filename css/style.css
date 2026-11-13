@@ -1,0 +1,247 @@
+/* Sprechbrett – colours follow the analogue board: orange top, white strips, violet sentence bar. */
+:root {
+  --board-bg: #F39200;
+  --violet: #6B2C91;
+  --white: #FFFFFF;
+  --ink: #222222;
+  --card: 110px;        /* set by JS from the screen height */
+  --scard: 110px;       /* card size in the sentence strip */
+  --gap: 8px;
+  --tabs-w: 132px;
+  --bar-pad: 12px;
+  font-family: -apple-system, "SF Pro Rounded", system-ui, "Helvetica Neue", Arial, sans-serif;
+  color: var(--ink);
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--violet);
+  overscroll-behavior: none;
+}
+
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-touch-callout: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: none;
+}
+
+button { font: inherit; color: inherit; touch-action: manipulation; }
+
+#app {
+  height: 100dvh;
+  display: grid;
+  grid-template-rows: 1fr auto;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* ---------- Board (top, orange) ---------- */
+
+#board {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr var(--tabs-w);
+  background: var(--board-bg);
+  min-height: 0;
+}
+
+#strips {
+  display: flex;
+  justify-content: space-evenly;
+  align-items: stretch;
+  padding: var(--gap) calc(var(--gap) * 3);
+  min-height: 0;
+}
+
+.strip {
+  background: var(--white);
+  width: calc(var(--card) + 2 * var(--gap));
+  display: flex;
+  flex-direction: column;
+  justify-content: space-evenly;
+  align-items: center;
+  border-radius: 3px;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, .06);
+}
+
+.slot {
+  width: var(--card);
+  height: var(--card);
+  display: grid;
+  place-items: center;
+  border-radius: 8px;
+}
+
+/* ---------- Cards ---------- */
+
+.card {
+  width: var(--card);
+  height: var(--card);
+  background: var(--white);
+  border: 2px solid #555;
+  border-radius: 8px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 5% 4% 3%;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, .25);
+  cursor: grab;
+}
+#sentence .card { width: var(--scard); height: var(--scard); }
+
+.card .pic {
+  flex: 1;
+  min-height: 0;
+  width: 100%;
+  display: grid;
+  place-items: center;
+}
+.card img {
+  max-width: 100%;
+  max-height: 100%;
+  object-fit: contain;
+  pointer-events: none;
+  -webkit-user-drag: none;
+}
+.card .word {
+  font-weight: 700;
+  font-size: calc(var(--card) * .15);
+  line-height: 1.1;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#sentence .card .word { font-size: calc(var(--scard) * .15); }
+
+.card.speaking {
+  outline: 5px solid #FFD400;
+  outline-offset: 2px;
+  transform: scale(1.06);
+}
+
+.card.floating {
+  position: fixed;
+  z-index: 50;
+  pointer-events: none;
+  transform: scale(1.08);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, .35);
+  transition: none;
+}
+.card.flying-back { transition: left .2s ease, top .2s ease; }
+.card.ghost { opacity: .25; }
+
+/* ---------- Tabs (right edge, like a binder register) ---------- */
+
+#tabs {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--gap) 0;
+  background: rgba(0, 0, 0, .12);
+  min-height: 0;
+}
+
+.tab {
+  flex: 0 1 72px;
+  min-height: 40px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  border: none;
+  border-radius: 0 12px 12px 0;
+  background: rgba(255, 255, 255, .75);
+  font-weight: 700;
+  font-size: 16px;
+  text-align: left;
+  overflow: hidden;
+}
+.tab img { width: 38px; height: 38px; object-fit: contain; flex: none; }
+.tab span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tab.active {
+  background: var(--board-bg);
+  color: var(--ink);
+  box-shadow: inset 4px 0 0 var(--board-bg), 0 0 0 2px rgba(255, 255, 255, .9);
+}
+
+/* ---------- Toolbar (gear / parent controls) ---------- */
+
+#toolbar {
+  position: absolute;
+  top: 4px;
+  left: 4px;
+  z-index: 5;
+  display: flex;
+  gap: 8px;
+}
+.gear {
+  width: 34px;
+  height: 34px;
+  padding: 5px;
+  border: none;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, .25);
+  color: rgba(0, 0, 0, .45);
+}
+
+/* ---------- Sentence bar (bottom, violet) ---------- */
+
+#sentence-bar {
+  display: flex;
+  align-items: center;
+  gap: calc(var(--gap) * 2);
+  padding: var(--bar-pad) calc(var(--bar-pad) * 2);
+  background: var(--violet);
+}
+
+.sentence-strip {
+  flex: 1;
+  height: calc(var(--scard) + 2 * var(--gap));
+  background: var(--white);
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: var(--gap);
+  padding: 0 var(--gap);
+  overflow: hidden;
+}
+.sentence-strip.shake { animation: shake .35s; }
+@keyframes shake {
+  20%, 60% { transform: translateX(-8px); }
+  40%, 80% { transform: translateX(8px); }
+}
+
+.drop-marker {
+  width: 6px;
+  align-self: stretch;
+  margin: var(--gap) 0;
+  background: var(--violet);
+  border-radius: 3px;
+}
+
+.round-btn {
+  flex: none;
+  width: calc(var(--scard) + 2 * var(--gap));
+  height: calc(var(--scard) + 2 * var(--gap));
+  border: 3px solid var(--white);
+  border-radius: 50%;
+  background: var(--white);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 3px 6px rgba(0, 0, 0, .3);
+}
+.round-btn.small {
+  width: calc(var(--scard) * .8);
+  height: calc(var(--scard) * .8);
+}
+.round-btn svg { width: 72%; height: 72%; }
+.round-btn:active { transform: scale(.95); }
