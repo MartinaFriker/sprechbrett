@@ -9,7 +9,7 @@ import { makeChallenge } from "./gate.js";
 import { searchPictograms, fetchPictogram, imageUrl } from "./arasaac.js";
 import { serializeBackup, parseBackup, collectImages, restoreImageKey } from "./backup.js";
 import { putImage, putImageDataUrl, hasImage, getImageUrl, getImageDataUrl, getBlob } from "./store.js";
-import { stopSpeaking, speakSequence, availableVoices, onVoicesChanged, forgetRecording } from "./speech.js";
+import { stopSpeaking, speakSequence, listVoices, onVoicesChanged, forgetRecording } from "./speech.js";
 import { pictoImg } from "./board.js";
 import { openCropper } from "./cropper.js";
 
@@ -607,9 +607,10 @@ export function openSettings(api) {
   // Voice: an installed German voice (or automatic), pitch and speed, with a test sentence.
   const voiceBox = el("div", "voice-settings");
   const voiceSelect = el("select", "voice-select");
-  const fillVoices = () => {
+  const fillVoices = async () => {
+    const voices = await listVoices();
     const chosen = voiceSettings(api.getState().book).voiceURI;
-    const opts = [["", "Automatisch"]].concat(availableVoices().map((v) => [v.voiceURI, `${v.name} (${v.lang})`]));
+    const opts = [["", "Automatisch"]].concat(voices.map((v) => [v.voiceURI, `${v.name} (${v.lang})`]));
     if (chosen && !opts.some(([uri]) => uri === chosen)) opts.push([chosen, "Gewählte Stimme (auf diesem Gerät nicht vorhanden)"]);
     voiceSelect.replaceChildren(...opts.map(([uri, label]) => {
       const o = el("option", "", label);

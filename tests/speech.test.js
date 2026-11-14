@@ -36,3 +36,11 @@ test("speechPlan: recordings where a card has one, the voice otherwise", () => {
     { kind: "voice", word: "Apfel" },
   ]);
 });
+
+import { nativeVoiceIndex } from "../js/speech.js";
+
+test("nativeVoiceIndex: index of the chosen voice in the plugin's full list", () => {
+  assert.equal(nativeVoiceIndex(all, "Markus"), 1);
+  assert.equal(nativeVoiceIndex(all, null), 6); // automatic pick: the Swiss voice
+  assert.equal(nativeVoiceIndex([v("Samantha", "en-US")], null), -1);
+});

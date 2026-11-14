@@ -93,3 +93,19 @@ Reines HTML/CSS/JavaScript ohne Build-Schritt.
 - Lokal starten: `python3 -m http.server 8642`, dann http://localhost:8642 öffnen.
 - Nach jeder Änderung an App-Dateien `VERSION` in `sw.js` erhöhen, damit
   installierte Geräte die neue Version laden.
+
+## iPad-App (App-Store-Version)
+
+Die App-Version verpackt denselben Code mit [Capacitor](https://capacitorjs.com)
+als native iPad-App. Dort kann das Sprechbrett alle auf dem iPad geladenen
+Stimmen nutzen (Safari erlaubt Web-Apps nur „Anna“).
+
+- Voraussetzung: Xcode (Mac App Store), einmal geöffnet.
+- `npm install`, dann `npm run ios:sync` (baut `www/` und kopiert es in das
+  Xcode-Projekt unter `ios/`).
+- `npm run ios:open` öffnet das Projekt in Xcode; dort ein iPad (Simulator oder
+  per Kabel) wählen und starten.
+- Nach jeder Änderung am Web-Code wieder `npm run ios:sync`.
+- Daten der App und der Web-Version sind getrennt; übertragen mit
+  „Sicherung speichern“ / „Sicherung laden“.
+

@@ -1,0 +1,10 @@
+{
+  "appId": "ch.friker.sprechbrett",
+  "appName": "Sprechbrett",
+  "webDir": "www",
+  "backgroundColor": "#F39200",
+  "ios": {
+    "contentInset": "never",
+    "scheme": "Sprechbrett"
+  }
+}

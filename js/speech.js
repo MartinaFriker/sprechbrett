@@ -12,6 +12,28 @@ const NOVELTY = /Eddy|Flo|Grandma|Grandpa|Reed|Rocko|Sandy|Shelley|Bad News|Bell
 
 const hasSpeech = () => typeof speechSynthesis !== "undefined";
 
+// In the native iPad app (Capacitor) speech goes through Apple's own synthesizer,
+// which offers every installed voice; Safari only gives web pages "Anna".
+const nativeTTS = globalThis.Capacitor?.isNativePlatform?.()
+  ? globalThis.Capacitor.registerPlugin("TextToSpeech")
+  : null;
+let nativeVoiceList = null;
+function nativeVoices() {
+  nativeVoiceList ??= nativeTTS.getSupportedVoices()
+    .then((r) => r.voices ?? [])
+    .catch(() => { nativeVoiceList = null; return []; });
+  return nativeVoiceList;
+}
+
+// One word through the native synthesizer; resolves when it has been spoken.
+async function speakNative(word, { voiceURI, pitch, rate }) {
+  const voices = await nativeVoices();
+  const index = nativeVoiceIndex(voices, voiceURI);
+  const options = { text: word, lang: voices[index]?.lang || "de-DE", rate, pitch, volume: 1, category: "playback" };
+  if (index >= 0) options.voice = index;
+  await nativeTTS.speak(options).catch(() => {});
+}
+
 // German voices for the settings list: Swiss ones first, then by name.
 export function germanVoices(voices) {
   return voices
@@ -35,9 +57,20 @@ export function chooseVoice(voices, voiceURI) {
   );
 }
 
+// Index of the voice to use in the native plugin's full voice list (-1 = system default).
+export function nativeVoiceIndex(voices, voiceURI) {
+  const v = chooseVoice(voices, voiceURI);
+  return v ? voices.indexOf(v) : -1;
+}
+
 // Installed German voices; iOS loads the list late, so callers can listen for changes.
 export function availableVoices() {
   return hasSpeech() ? germanVoices(speechSynthesis.getVoices()) : [];
+}
+
+// Voices for the settings list: all native voices in the app, the browser's list on the web.
+export async function listVoices() {
+  return nativeTTS ? germanVoices(await nativeVoices()) : availableVoices();
 }
 // Returns a function that stops listening.
 export function onVoicesChanged(fn) {
@@ -56,6 +89,7 @@ export function speechPlan(cards) {
 export function stopSpeaking() {
   token++;
   if (hasSpeech()) speechSynthesis.cancel();
+  nativeTTS?.stop().catch(() => {});
   try { currentSource?.stop(); } catch { /* already stopped */ }
   currentSource = null;
 }
@@ -123,7 +157,7 @@ export function playSentence(cards, { onWord, onDone, getBlob, voiceURI = null, 
   const my = token;
   const ctx = unlockAudio();
   // Unlock speech inside the tap too, so voice words after a recording are allowed on iOS.
-  if (hasSpeech()) {
+  if (hasSpeech() && !nativeTTS) {
     const silent = new SpeechSynthesisUtterance(" ");
     silent.volume = 0;
     speechSynthesis.speak(silent);
@@ -146,7 +180,10 @@ export function playSentence(cards, { onWord, onDone, getBlob, voiceURI = null, 
           // A missing or broken recording falls back to the voice.
         }
       }
-      if (!played) await speakOne(p.word, voice, pitch, rate);
+      if (!played) {
+        if (nativeTTS) await speakNative(p.word, { voiceURI, pitch, rate });
+        else await speakOne(p.word, voice, pitch, rate);
+      }
     }
     if (my === token) onDone?.();
   })();
@@ -160,6 +197,18 @@ export function forgetRecording(id) {
 export function speakSequence(words, { onWord, onDone, voiceURI = null, pitch = 1, rate = 0.9 } = {}) {
   stopSpeaking();
   const my = token;
+  if (nativeTTS) {
+    // Native speech has no gesture rule: speak word by word and wait for each.
+    (async () => {
+      for (let i = 0; i < words.length; i++) {
+        if (my !== token) return;
+        onWord?.(i);
+        await speakNative(words[i], { voiceURI, pitch, rate });
+      }
+      if (my === token) onDone?.();
+    })();
+    return;
+  }
   if (!words.length || !hasSpeech()) {
     onDone?.();
     return;

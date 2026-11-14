@@ -20,8 +20,10 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  /* The safe-area insets show the board colour on top and violet at the bottom. */
-  background: linear-gradient(var(--board-bg) 50%, var(--violet) 50%);
+  /* The safe-area insets show the board colour on top and violet at the bottom.
+     iOS paints areas outside the page (below the app, overscroll) with the plain
+     background colour, not the gradient: make that violet instead of white. */
+  background: linear-gradient(var(--board-bg) 50%, var(--violet) 50%) var(--violet);
   overscroll-behavior: none;
 }
 
@@ -36,7 +38,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
 
 #app {
   touch-action: none;
-  height: 100dvh;
+  /* Pin to the whole screen: 100dvh can be shorter than the screen in an iPad home-screen app. */
+  position: fixed;
+  inset: 0;
   display: grid;
   grid-template-rows: 1fr auto;
   padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
