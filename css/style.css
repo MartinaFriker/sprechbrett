@@ -448,3 +448,14 @@ body.black-strips { --strip: #1E1E1E; }
 .voice-slider { width: min(100%, 420px); }
 .voice-slider input { width: 100%; }
 .slider-ends { display: flex; justify-content: space-between; font-size: 13px; font-weight: 400; color: #666; }
+
+/* ---------- Sound recording ---------- */
+
+.card-edit-side h3 { margin: 4px 0 0; }
+.recorder { display: flex; flex-direction: column; gap: 6px; }
+.rec-row { flex-wrap: wrap; gap: 6px; }
+.rec-row .btn { padding-left: 10px; padding-right: 10px; }
+.rec-btn.recording { background: #B3261E; color: #fff; }
+.rec-status { font-size: 13px; color: #666; }
+
+[hidden] { display: none !important; }

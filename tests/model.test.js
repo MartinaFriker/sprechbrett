@@ -229,3 +229,20 @@ test("voice settings: defaults for old books, clamped pitch and rate", () => {
   assert.equal(setVoice(b2, { pitch: 2 }), b2);
   assert.equal(voiceSettings(setVoice(b2, { voiceURI: null })).voiceURI, null);
 });
+
+import { recordingId, allMediaIds } from "../js/model.js";
+
+test("cards can carry a recording; allMediaIds lists pictures and recordings", () => {
+  let book = createBook();
+  const pageId = book.pages[0].id;
+  const rec = recordingId();
+  assert.match(rec, /^rec-[0-9a-f-]{36}$/);
+  const { book: b1, cardId } = addCard(book, { pageId, strip: 0, slot: 0, word: "Mama", pictoId: 5, audioId: rec });
+  assert.equal(b1.cards[cardId].audioId, rec);
+  assert.deepEqual(allMediaIds(b1).sort(), [5, rec].sort());
+  const b2 = updateCard(b1, cardId, { audioId: null });
+  assert.equal(b2.cards[cardId].audioId, null);
+  assert.deepEqual(allMediaIds(b2), [5]);
+  const plain = addCard(book, { pageId, strip: 0, slot: 1, word: "x", pictoId: 6 });
+  assert.equal(plain.book.cards[plain.cardId].audioId, null);
+});

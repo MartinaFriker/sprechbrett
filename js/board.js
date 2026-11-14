@@ -5,8 +5,8 @@ import {
   takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError, stripColor, voiceSettings,
 } from "./model.js";
 import { classifyGesture } from "./gesture.js";
-import { speakSequence, stopSpeaking } from "./speech.js";
-import { cachedImageUrl, getImageUrl } from "./store.js";
+import { playSentence, stopSpeaking } from "./speech.js";
+import { cachedImageUrl, getImageUrl, getBlob } from "./store.js";
 import { ICON_SPEAK, ICON_RETURN_ALL, ICON_GEAR, ICON_PLUS } from "./icons.js";
 
 const $ = (id) => document.getElementById(id);
@@ -364,9 +364,10 @@ export function attachBoardEvents(api) {
     const highlight = (i) => {
       $("sentence").querySelectorAll(".card").forEach((c, j) => c.classList.toggle("speaking", j === i));
     };
-    speakSequence(book.sentence.map((id) => book.cards[id].word), {
+    playSentence(book.sentence.map((id) => book.cards[id]), {
       onWord: highlight,
       onDone: () => highlight(-1),
+      getBlob,
       ...voiceSettings(book),
     });
   });

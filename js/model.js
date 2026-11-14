@@ -30,6 +30,10 @@ const clone = (book) => structuredClone(book);
 export function ownPictureId() {
   return "own-" + newId();
 }
+// Own sound recordings of a card's word: "rec-<uuid>", stored next to the pictures.
+export function recordingId() {
+  return "rec-" + newId();
+}
 export function isOwnPicture(id) {
   return typeof id === "string" && id.startsWith("own-");
 }
@@ -99,20 +103,21 @@ function checkSlot(book, pageId, strip, slot) {
   }
 }
 
-export function addCard(book, { pageId, strip, slot, word, pictoId }) {
+export function addCard(book, { pageId, strip, slot, word, pictoId, audioId = null }) {
   checkSlot(book, pageId, strip, slot);
   if (cardAt(book, pageId, strip, slot)) throw new ModelError("Dieser Platz ist schon besetzt.");
   const b = clone(book);
   const cardId = newId();
-  b.cards[cardId] = { id: cardId, word, pictoId, pageId, strip, slot };
+  b.cards[cardId] = { id: cardId, word, pictoId, audioId, pageId, strip, slot };
   return { book: b, cardId };
 }
 
-export function updateCard(book, cardId, { word, pictoId }) {
+export function updateCard(book, cardId, { word, pictoId, audioId }) {
   if (!(cardId in book.cards)) return book;
   const b = clone(book);
   if (word !== undefined) b.cards[cardId].word = word;
   if (pictoId !== undefined) b.cards[cardId].pictoId = pictoId;
+  if (audioId !== undefined) b.cards[cardId].audioId = audioId;
   return b;
 }
 
@@ -254,5 +259,12 @@ export function allPictoIds(book) {
   const ids = new Set();
   for (const c of Object.values(book.cards)) if (c.pictoId != null) ids.add(c.pictoId);
   for (const p of book.pages) if (p.iconPictoId != null) ids.add(p.iconPictoId);
+  return [...ids];
+}
+
+// Every stored blob the book refers to (pictures and recordings), e.g. for backups.
+export function allMediaIds(book) {
+  const ids = new Set(allPictoIds(book));
+  for (const c of Object.values(book.cards)) if (c.audioId) ids.add(c.audioId);
   return [...ids];
 }

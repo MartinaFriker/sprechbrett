@@ -56,6 +56,19 @@ Beispielsatz. Weitere und bessere Stimmen lädt man gratis unter
 *Einstellungen → Bedienungshilfen → Gesprochene Inhalte → Stimmen → Deutsch*.
 Danach die App einmal ganz schliessen und neu öffnen.
 
+## Eigene Tonaufnahmen
+
+iOS gibt Web-Apps für Deutsch nur die Stimme „Anna“. Für andere Stimmen
+(Mama, Papa, Geschwister, Schweizerdeutsch) nimmt man das Wort einer Karte
+selbst auf: Im Karten-Fenster **„Wort aufnehmen“**, sprechen, **„Stopp“**
+(nach 10 Sekunden stoppt die Aufnahme selbst), mit **„Anhören“** prüfen und
+die Karte speichern. Beim ersten Mal fragt das iPad, ob die App das Mikrofon
+benutzen darf.
+
+Die Sprechen-Taste spielt dann für jede Karte die Aufnahme ab; Karten ohne
+Aufnahme spricht die iPad-Stimme. Aufnahmen liegen nur auf dem Gerät und
+kommen mit in die Sicherungsdatei.
+
 ## Sicherung
 
 Alle Karten und Bilder sind nur auf diesem iPad gespeichert. Im Eltern-Bereich

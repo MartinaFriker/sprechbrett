@@ -3,13 +3,13 @@
 import {
   MAX_PAGES, MIN_STRIPS, MAX_STRIPS, ModelError,
   returnAll, addCard, updateCard, deleteCard, addPage, renamePage, movePage, deletePage,
-  setStripCount, setBackground, setStripColor, stripColor, voiceSettings, setVoice, markBackedUp, backupOverdue, allPictoIds, ownPictureId, isOwnPicture,
+  setStripCount, setBackground, setStripColor, stripColor, voiceSettings, setVoice, markBackedUp, backupOverdue, allPictoIds, allMediaIds, ownPictureId, isOwnPicture, recordingId,
 } from "./model.js";
 import { makeChallenge } from "./gate.js";
 import { searchPictograms, fetchPictogram, imageUrl } from "./arasaac.js";
 import { serializeBackup, parseBackup, collectImages, restoreImageKey } from "./backup.js";
-import { putImage, putImageDataUrl, hasImage, getImageUrl, getImageDataUrl } from "./store.js";
-import { stopSpeaking, speakSequence, availableVoices, onVoicesChanged } from "./speech.js";
+import { putImage, putImageDataUrl, hasImage, getImageUrl, getImageDataUrl, getBlob } from "./store.js";
+import { stopSpeaking, speakSequence, availableVoices, onVoicesChanged, forgetRecording } from "./speech.js";
 import { pictoImg } from "./board.js";
 import { openCropper } from "./cropper.js";
 
@@ -183,6 +183,115 @@ export function openGate(onSuccess) {
 
 // ---------- Card dialog ----------
 
+// ---------- Sound recording of a card's word ----------
+
+const MAX_RECORDING_MS = 10000;
+
+function recordingMime() {
+  for (const t of ["audio/mp4", "audio/webm;codecs=opus", "audio/webm"]) {
+    if (MediaRecorder.isTypeSupported?.(t)) return t;
+  }
+  return "";
+}
+
+// "Wort aufnehmen" panel. state() tells the dialog what to save:
+// { blob } for a new recording, { remove: true } when deleted, {} when unchanged.
+function recorderPanel(existingId, dlg, onError) {
+  const wrap = el("div", "recorder");
+  const status = el("span", "rec-status");
+  const recBtn = button("", "btn rec-btn");
+  const playBtn = button("▶ Anhören", "btn");
+  const delBtn = button("Aufnahme löschen", "btn");
+  let blob = null;
+  let removed = false;
+  let recorder = null;
+  let stream = null;
+  let timer = null;
+  let player = null;
+
+  const hasRecording = () => !!blob || (!!existingId && !removed);
+  const show = () => {
+    const recording = recorder?.state === "recording";
+    recBtn.textContent = recording ? "■ Stopp" : hasRecording() ? "🎙 Neu aufnehmen" : "🎙 Wort aufnehmen";
+    recBtn.classList.toggle("recording", recording);
+    playBtn.hidden = recording || !hasRecording();
+    delBtn.hidden = recording || !hasRecording();
+    status.textContent = recording ? "Aufnahme läuft …" : hasRecording() ? "Eigene Aufnahme" : "Ohne Aufnahme spricht die iPad-Stimme.";
+  };
+  const stopStream = () => {
+    clearTimeout(timer);
+    stream?.getTracks().forEach((t) => t.stop());
+    stream = null;
+  };
+  const stop = () => {
+    if (recorder?.state === "recording") recorder.stop();
+    stopStream();
+  };
+
+  recBtn.addEventListener("click", async () => {
+    onError("");
+    if (recorder?.state === "recording") { stop(); return; }
+    if (!navigator.mediaDevices?.getUserMedia || typeof MediaRecorder === "undefined") {
+      onError("Aufnehmen geht in diesem Browser nicht.");
+      return;
+    }
+    try {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch (e) {
+      onError(e?.name === "NotAllowedError"
+        ? "Das Mikrofon ist nicht erlaubt. Bitte in den Einstellungen des iPads erlauben."
+        : "Das Mikrofon kann nicht benutzt werden.");
+      return;
+    }
+    const mime = recordingMime();
+    recorder = mime ? new MediaRecorder(stream, { mimeType: mime }) : new MediaRecorder(stream);
+    const chunks = [];
+    recorder.ondataavailable = (e) => { if (e.data.size) chunks.push(e.data); };
+    recorder.onstop = () => {
+      stopStream();
+      if (chunks.length) {
+        blob = new Blob(chunks, { type: recorder.mimeType || mime || "audio/mp4" });
+        removed = false;
+      }
+      show();
+    };
+    recorder.start();
+    timer = setTimeout(stop, MAX_RECORDING_MS);
+    show();
+  });
+
+  playBtn.addEventListener("click", async () => {
+    const source = blob ?? (existingId ? await getBlob(existingId) : null);
+    if (!source) { onError("Die Aufnahme fehlt auf dem Gerät."); return; }
+    player?.pause();
+    if (player) URL.revokeObjectURL(player.src);
+    player = new Audio(URL.createObjectURL(source));
+    player.play().catch(() => onError("Die Aufnahme kann nicht abgespielt werden."));
+  });
+
+  delBtn.addEventListener("click", () => {
+    blob = null;
+    removed = true;
+    show();
+  });
+
+  // Never leave the microphone on when the dialog closes.
+  dlg.addEventListener("close", () => {
+    stop();
+    player?.pause();
+  });
+
+  const buttons = el("div", "row rec-row");
+  buttons.append(recBtn, playBtn, delBtn);
+  wrap.append(buttons, status);
+  show();
+  return {
+    wrap,
+    state: () => (blob ? { blob } : removed ? { remove: true } : {}),
+    busy: () => recorder?.state === "recording",
+  };
+}
+
 export function openCardDialog(api, { pageId, strip, slot, cardId }) {
   const { book } = api.getState();
   const existing = cardId ? book.cards[cardId] : null;
@@ -239,7 +348,8 @@ export function openCardDialog(api, { pageId, strip, slot, cardId }) {
   const side = el("div", "card-edit-side");
   const label = el("label", "field", "Wort");
   label.append(wordInput);
-  side.append(preview, ownPic, label);
+  const rec = recorderPanel(existing?.audioId ?? null, m.dlg, (text) => { msg.textContent = text; });
+  side.append(preview, ownPic, label, el("h3", "", "Eigene Aufnahme"), rec.wrap);
   const layout = el("div", "card-edit");
   layout.append(search.wrap, side);
   const msg = el("p", "dlg-msg");
@@ -250,17 +360,27 @@ export function openCardDialog(api, { pageId, strip, slot, cardId }) {
     const w = wordInput.value.trim();
     if (pictoId == null) { msg.textContent = "Bitte zuerst ein Bild suchen oder ein eigenes Bild wählen."; return; }
     if (!w) { msg.textContent = "Bitte ein Wort eingeben."; return; }
+    if (rec.busy()) { msg.textContent = "Bitte zuerst die Aufnahme stoppen."; return; }
     msg.textContent = "Speichere …";
+    const recState = rec.state();
+    let audioId = existing?.audioId ?? null;
     try {
       await storePicture(pictoId, ownBlob);
+      if (recState.blob) {
+        audioId = recordingId();
+        await putImage(audioId, recState.blob);
+      } else if (recState.remove) {
+        audioId = null;
+      }
     } catch (e) {
       msg.textContent = e.message;
       return;
     }
+    if (existing?.audioId && existing.audioId !== audioId) forgetRecording(existing.audioId);
     const b = api.getState().book;
     try {
-      if (existing) api.update(updateCard(b, existing.id, { word: w, pictoId }));
-      else api.update(addCard(b, { pageId, strip, slot, word: w, pictoId }).book);
+      if (existing) api.update(updateCard(b, existing.id, { word: w, pictoId, audioId }));
+      else api.update(addCard(b, { pageId, strip, slot, word: w, pictoId, audioId }).book);
       m.close();
     } catch (e) {
       if (e instanceof ModelError) msg.textContent = e.message;
@@ -375,7 +495,7 @@ function backupText(book) {
 // Build the backup file ahead of time: iPad Safari only opens the share sheet when
 // navigator.share() is called right inside the tap, without waiting for storage first.
 async function prepareBackup(book) {
-  const { images, missing } = await collectImages(allPictoIds(book), getImageDataUrl);
+  const { images, missing } = await collectImages(allMediaIds(book), getImageDataUrl);
   const now = new Date();
   const name = `sprechbrett-${now.toISOString().slice(0, 10)}.json`;
   const file = new File([serializeBackup(book, images, now)], name, { type: "application/json" });

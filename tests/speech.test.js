@@ -25,3 +25,14 @@ test("chooseVoice: the chosen voice if installed, otherwise the automatic pick",
   assert.equal(chooseVoice(all.filter((x) => x.lang !== "de-CH"), null).name, "Markus");
   assert.equal(chooseVoice([v("Samantha", "en-US")], null), null);
 });
+
+import { speechPlan } from "../js/speech.js";
+
+test("speechPlan: recordings where a card has one, the voice otherwise", () => {
+  const cards = [{ word: "Ich", audioId: "rec-1" }, { word: "möchte" }, { word: "Apfel", audioId: null }];
+  assert.deepEqual(speechPlan(cards), [
+    { kind: "audio", id: "rec-1", word: "Ich" },
+    { kind: "voice", word: "möchte" },
+    { kind: "voice", word: "Apfel" },
+  ]);
+});

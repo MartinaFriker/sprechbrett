@@ -78,6 +78,11 @@ export async function getImageUrl(id) {
   return url;
 }
 
+// Raw stored blob (pictures and sound recordings share this store).
+export async function getBlob(id) {
+  return (await run("images", "readonly", (s) => s.get(id))) ?? null;
+}
+
 export async function getImageDataUrl(id) {
   const blob = await run("images", "readonly", (s) => s.get(id));
   if (!blob) return null;
