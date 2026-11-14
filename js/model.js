@@ -7,6 +7,10 @@ export const MIN_STRIPS = 1;
 export const MAX_STRIPS = 8;
 export const MAX_PAGES = 10;
 export const SENTENCE_MAX = 8;
+// Board colour of new books: soft yellow (the analogue PECS folder is orange).
+export const DEFAULT_BACKGROUND = "#F9DC7C";
+export const OLD_DEFAULT_BACKGROUND = "#F39200";
+export const PALETTE = 2;
 
 export class ModelError extends Error {
   constructor(message) {
@@ -41,7 +45,7 @@ export function isOwnPicture(id) {
 export function createBook() {
   return {
     version: 1,
-    settings: { background: "#F39200", stripCount: 4, stripColor: "white" },
+    settings: { background: DEFAULT_BACKGROUND, stripCount: 4, stripColor: "white", palette: PALETTE },
     pages: [{ id: newId(), name: "Seite 1", iconPictoId: null }],
     cards: {},
     sentence: [],

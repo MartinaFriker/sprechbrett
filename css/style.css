@@ -1,7 +1,7 @@
-/* Sprechbrett – colours follow the analogue board: orange top, white strips, violet sentence bar. */
+/* Sprechbrett – colours: soft yellow board, white strips, medium blue sentence bar. */
 :root {
   --board-bg: #F39200;
-  --violet: #6B2C91;
+  --bar: #3D7CC9;
   --white: #FFFFFF;
   --strip: #FFFFFF;     /* hook-and-loop strips: white or black (setting) */
   --ink: #222222;
@@ -20,10 +20,10 @@ html, body {
   margin: 0;
   height: 100%;
   overflow: hidden;
-  /* The safe-area insets show the board colour on top and violet at the bottom.
+  /* The safe-area insets show the board colour on top and blue at the bottom.
      iOS paints areas outside the page (below the app, overscroll) with the plain
-     background colour, not the gradient: make that violet instead of white. */
-  background: linear-gradient(var(--board-bg) 50%, var(--violet) 50%) var(--violet);
+     background colour, not the gradient: make that blue instead of white. */
+  background: linear-gradient(var(--board-bg) 50%, var(--bar) 50%) var(--bar);
   overscroll-behavior: none;
 }
 
@@ -202,14 +202,14 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   color: rgba(0, 0, 0, .45);
 }
 
-/* ---------- Sentence bar (bottom, violet) ---------- */
+/* ---------- Sentence bar (bottom, blue) ---------- */
 
 #sentence-bar {
   display: flex;
   align-items: center;
   gap: calc(var(--gap) * 2);
   padding: var(--bar-pad) calc(var(--bar-pad) * 2);
-  background: var(--violet);
+  background: var(--bar);
 }
 
 .sentence-strip {
@@ -245,7 +245,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   width: 6px;
   align-self: stretch;
   margin: var(--gap) 0;
-  /* Yellow stays visible on the violet bar and on white or black strips. */
+  /* Yellow stays visible on the blue bar and on white or black strips. */
   background: #FFD400;
   box-shadow: 0 0 0 1px rgba(0, 0, 0, .35);
   border-radius: 3px;
@@ -291,7 +291,7 @@ body.black-strips { --strip: #1E1E1E; }
   font-size: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, .25);
 }
-.pill.primary { background: var(--violet); color: var(--white); }
+.pill.primary { background: var(--bar); color: var(--white); }
 
 .banner {
   display: flex;
@@ -352,7 +352,7 @@ body.black-strips { --strip: #1E1E1E; }
   font-weight: 700;
   font-size: 17px;
 }
-.btn.primary { background: var(--violet); color: var(--white); }
+.btn.primary { background: var(--bar); color: var(--white); }
 .btn.danger { background: #FBE3E1; color: #B3261E; }
 .btn.round { width: 48px; height: 48px; padding: 0; border-radius: 50%; font-size: 26px; }
 
@@ -378,7 +378,7 @@ body.black-strips { --strip: #1E1E1E; }
   padding: 6px;
 }
 .result img { width: 100%; height: 100%; object-fit: contain; }
-.result.selected { border-color: var(--violet); box-shadow: 0 0 0 3px var(--violet); }
+.result.selected { border-color: var(--bar); box-shadow: 0 0 0 3px var(--bar); }
 
 .card-edit { display: grid; grid-template-columns: 1fr 190px; gap: 20px; align-items: start; }
 .card-edit-side { display: flex; flex-direction: column; gap: 14px; align-items: stretch; }
@@ -436,7 +436,7 @@ body.black-strips { --strip: #1E1E1E; }
 .crop-hint { margin: 0 0 12px; color: #555; }
 .crop-frame {
   margin: 0 auto;
-  border: 3px solid var(--violet);
+  border: 3px solid var(--bar);
   border-radius: 8px;
   overflow: hidden;
   touch-action: none;

@@ -14,7 +14,7 @@ import { pictoImg } from "./board.js";
 import { openCropper } from "./cropper.js";
 
 export const ATTRIBUTION = "Piktogramme: Sergio Palao, ARASAAC (arasaac.org), Lizenz CC BY-NC-SA 4.0";
-const SWATCHES = ["#F39200", "#F6B800", "#E4572E", "#4A90C8", "#6BAA4B"];
+const SWATCHES = ["#F9DC7C", "#F6B800", "#F39200", "#E4572E", "#6BAA4B"];
 
 // ---------- Small DOM helpers ----------
 

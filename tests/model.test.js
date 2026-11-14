@@ -27,7 +27,8 @@ test("createBook: one page, defaults", () => {
   assert.equal(b.pages[0].name, "Seite 1");
   assert.equal(b.pages[0].iconPictoId, null);
   assert.equal(b.settings.stripCount, 4);
-  assert.equal(b.settings.background, "#F39200");
+  assert.equal(b.settings.background, "#F9DC7C");
+  assert.equal(b.settings.palette, 2);
   assert.deepEqual(b.cards, {});
   assert.deepEqual(b.sentence, []);
   assert.equal(b.lastBackup, null);
