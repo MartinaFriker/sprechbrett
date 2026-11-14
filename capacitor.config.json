@@ -2,7 +2,7 @@
   "appId": "ch.friker.sprechbrett",
   "appName": "Sprechbrett",
   "webDir": "www",
-  "backgroundColor": "#F9DC7C",
+  "backgroundColor": "#FBCF3A",
   "ios": {
     "contentInset": "never",
     "scheme": "Sprechbrett"

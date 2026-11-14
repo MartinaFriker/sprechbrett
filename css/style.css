@@ -1,4 +1,4 @@
-/* Sprechbrett – colours: soft yellow board, white strips, medium blue sentence bar. */
+/* Sprechbrett – colours: yellow board, white strips, medium blue sentence bar. */
 :root {
   --board-bg: #F39200;
   --bar: #3D7CC9;
@@ -155,7 +155,9 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   flex-direction: column;
   gap: 6px;
   padding: var(--gap) 0;
-  background: rgba(0, 0, 0, .12);
+  /* A lighter shade of the board colour (darkening it turned yellow brownish). */
+  background: var(--board-bg);
+  background: color-mix(in srgb, var(--board-bg) 55%, white);
   min-height: 0;
 }
 
@@ -168,7 +170,7 @@ button { font: inherit; color: inherit; touch-action: manipulation; }
   padding: 4px 8px;
   border: none;
   border-radius: 0 12px 12px 0;
-  background: rgba(255, 255, 255, .75);
+  background: rgba(255, 255, 255, .85);
   font-weight: 700;
   font-size: 16px;
   text-align: left;

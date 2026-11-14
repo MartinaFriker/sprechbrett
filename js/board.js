@@ -2,7 +2,7 @@
 
 import {
   SLOTS_PER_STRIP, MAX_PAGES, cardAt, isOnBoard,
-  takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError, stripColor, voiceSettings,
+  takeToSentence, moveInSentence, returnCard, returnAll, moveCard, ModelError, stripColor, barColor, voiceSettings,
 } from "./model.js";
 import { classifyGesture } from "./gesture.js";
 import { playSentence, stopSpeaking } from "./speech.js";
@@ -118,6 +118,7 @@ function renderToolbar(state) {
 
 export function renderBoard(state) {
   document.documentElement.style.setProperty("--board-bg", state.book.settings.background);
+  document.documentElement.style.setProperty("--bar", barColor(state.book));
   document.body.classList.toggle("parent-mode", state.mode === "parent");
   document.body.classList.toggle("black-strips", stripColor(state.book) === "black");
   renderToolbar(state);

@@ -29,19 +29,25 @@ test("sentence entries without a card are dropped on load", async () => {
 test("an old book with the old orange default gets the new soft yellow once", async () => {
   const stored = { pages: [{ id: "p" }], cards: {}, sentence: [], settings: { background: "#F39200" } };
   const { book } = await loadInitialBook(async () => stored, () => null);
-  assert.equal(book.settings.background, "#F9DC7C");
-  assert.equal(book.settings.palette, 2);
+  assert.equal(book.settings.background, "#FBCF3A");
+  assert.equal(book.settings.palette, 3);
 });
 
 test("an old book with a colour of its own keeps it", async () => {
   const stored = { pages: [{ id: "p" }], cards: {}, sentence: [], settings: { background: "#6BAA4B" } };
   const { book } = await loadInitialBook(async () => stored, () => null);
   assert.equal(book.settings.background, "#6BAA4B");
-  assert.equal(book.settings.palette, 2);
+  assert.equal(book.settings.palette, 3);
 });
 
 test("orange chosen after the change stays orange", async () => {
-  const stored = { pages: [{ id: "p" }], cards: {}, sentence: [], settings: { background: "#F39200", palette: 2 } };
+  const stored = { pages: [{ id: "p" }], cards: {}, sentence: [], settings: { background: "#F39200", palette: 3 } };
   const { book } = await loadInitialBook(async () => stored, () => null);
   assert.equal(book.settings.background, "#F39200");
+});
+
+test("the first soft yellow default also becomes the stronger yellow", async () => {
+  const stored = { pages: [{ id: "p" }], cards: {}, sentence: [], settings: { background: "#F9DC7C", palette: 2 } };
+  const { book } = await loadInitialBook(async () => stored, () => null);
+  assert.equal(book.settings.background, "#FBCF3A");
 });

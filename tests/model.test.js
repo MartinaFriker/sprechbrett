@@ -27,8 +27,8 @@ test("createBook: one page, defaults", () => {
   assert.equal(b.pages[0].name, "Seite 1");
   assert.equal(b.pages[0].iconPictoId, null);
   assert.equal(b.settings.stripCount, 4);
-  assert.equal(b.settings.background, "#F9DC7C");
-  assert.equal(b.settings.palette, 2);
+  assert.equal(b.settings.background, "#FBCF3A");
+  assert.equal(b.settings.palette, 3);
   assert.deepEqual(b.cards, {});
   assert.deepEqual(b.sentence, []);
   assert.equal(b.lastBackup, null);
@@ -246,4 +246,17 @@ test("cards can carry a recording; allMediaIds lists pictures and recordings", (
   assert.deepEqual(allMediaIds(b2), [5]);
   const plain = addCard(book, { pageId, strip: 0, slot: 1, word: "x", pictoId: 6 });
   assert.equal(plain.book.cards[plain.cardId].audioId, null);
+});
+
+import { barColor, setBarColor, DEFAULT_BAR } from "../js/model.js";
+
+test("the sentence bar is blue unless another colour is chosen", () => {
+  const book = createBook();
+  assert.equal(barColor(book), DEFAULT_BAR);
+  const old = structuredClone(book);
+  delete old.settings.barColor;
+  assert.equal(barColor(old), DEFAULT_BAR);
+  const violet = setBarColor(book, "#6B2C91");
+  assert.equal(barColor(violet), "#6B2C91");
+  assert.equal(barColor(book), DEFAULT_BAR);
 });

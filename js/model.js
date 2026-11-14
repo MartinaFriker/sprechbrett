@@ -7,10 +7,12 @@ export const MIN_STRIPS = 1;
 export const MAX_STRIPS = 8;
 export const MAX_PAGES = 10;
 export const SENTENCE_MAX = 8;
-// Board colour of new books: soft yellow (the analogue PECS folder is orange).
-export const DEFAULT_BACKGROUND = "#F9DC7C";
-export const OLD_DEFAULT_BACKGROUND = "#F39200";
-export const PALETTE = 2;
+// Colours of new books: yellow board and blue sentence bar (the analogue PECS folder is orange and violet).
+export const DEFAULT_BACKGROUND = "#FBCF3A";
+export const DEFAULT_BAR = "#3D7CC9";
+// Earlier defaults that switch to the current one once (see startup.js).
+export const OLD_DEFAULT_BACKGROUNDS = ["#F39200", "#F9DC7C"];
+export const PALETTE = 3;
 
 export class ModelError extends Error {
   constructor(message) {
@@ -45,7 +47,7 @@ export function isOwnPicture(id) {
 export function createBook() {
   return {
     version: 1,
-    settings: { background: DEFAULT_BACKGROUND, stripCount: 4, stripColor: "white", palette: PALETTE },
+    settings: { background: DEFAULT_BACKGROUND, barColor: DEFAULT_BAR, stripCount: 4, stripColor: "white", palette: PALETTE },
     pages: [{ id: newId(), name: "Seite 1", iconPictoId: null }],
     cards: {},
     sentence: [],
@@ -209,6 +211,18 @@ export function setBackground(book, color) {
   if (book.settings.background === color) return book;
   const b = clone(book);
   b.settings.background = color;
+  return b;
+}
+
+// Books saved before this setting existed have no barColor: they get the blue bar.
+export function barColor(book) {
+  return book.settings.barColor ?? DEFAULT_BAR;
+}
+
+export function setBarColor(book, color) {
+  if (barColor(book) === color) return book;
+  const b = clone(book);
+  b.settings.barColor = color;
   return b;
 }
 

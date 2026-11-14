@@ -3,7 +3,7 @@
 import {
   MAX_PAGES, MIN_STRIPS, MAX_STRIPS, ModelError,
   returnAll, addCard, updateCard, deleteCard, addPage, renamePage, movePage, deletePage,
-  setStripCount, setBackground, setStripColor, stripColor, voiceSettings, setVoice, markBackedUp, backupOverdue, allPictoIds, allMediaIds, ownPictureId, isOwnPicture, recordingId,
+  setStripCount, setBackground, setBarColor, barColor, setStripColor, stripColor, voiceSettings, setVoice, markBackedUp, backupOverdue, allPictoIds, allMediaIds, ownPictureId, isOwnPicture, recordingId,
 } from "./model.js";
 import { makeChallenge } from "./gate.js";
 import { searchPictograms, fetchPictogram, imageUrl } from "./arasaac.js";
@@ -14,7 +14,8 @@ import { pictoImg } from "./board.js";
 import { openCropper } from "./cropper.js";
 
 export const ATTRIBUTION = "Piktogramme: Sergio Palao, ARASAAC (arasaac.org), Lizenz CC BY-NC-SA 4.0";
-const SWATCHES = ["#F9DC7C", "#F6B800", "#F39200", "#E4572E", "#6BAA4B"];
+const SWATCHES = ["#FBCF3A", "#F9DC7C", "#F39200", "#E4572E", "#6BAA4B", "#4A90C8", "#6B2C91"];
+const BAR_SWATCHES = ["#3D7CC9", "#6B2C91", "#2E8B57", "#C0392B", "#E07B00", "#3A3A3A"];
 
 // ---------- Small DOM helpers ----------
 
@@ -549,25 +550,29 @@ export function openSettings(api) {
   const m = modal("Einstellungen");
   const msg = el("p", "dlg-msg");
 
-  // Background colour
-  const colours = el("div", "row swatches");
-  const current = () => api.getState().book.settings.background;
-  const picker = el("input");
-  picker.type = "color";
-  const markSwatch = () => {
-    colours.querySelectorAll(".swatch").forEach((s) => s.classList.toggle("selected", s.dataset.color === current()));
-    picker.value = current();
+  // Colour rows: a few swatches plus a free colour picker.
+  const colourRow = (swatches, current, set) => {
+    const row = el("div", "row swatches");
+    const picker = el("input");
+    picker.type = "color";
+    const mark = () => {
+      row.querySelectorAll(".swatch").forEach((s) => s.classList.toggle("selected", s.dataset.color === current()));
+      picker.value = current();
+    };
+    for (const c of swatches) {
+      const s = button("", "swatch", () => { api.update(set(api.getState().book, c)); mark(); prepare(); });
+      s.dataset.color = c;
+      s.style.background = c;
+      s.setAttribute("aria-label", "Farbe " + c);
+      row.append(s);
+    }
+    picker.addEventListener("input", () => { api.update(set(api.getState().book, picker.value.toUpperCase())); mark(); prepare(); });
+    row.append(picker);
+    mark();
+    return row;
   };
-  for (const c of SWATCHES) {
-    const s = button("", "swatch", () => { api.update(setBackground(api.getState().book, c)); markSwatch(); prepare(); });
-    s.dataset.color = c;
-    s.style.background = c;
-    s.setAttribute("aria-label", "Farbe " + c);
-    colours.append(s);
-  }
-  picker.addEventListener("input", () => { api.update(setBackground(api.getState().book, picker.value.toUpperCase())); markSwatch(); prepare(); });
-  colours.append(picker);
-  markSwatch();
+  const colours = colourRow(SWATCHES, () => api.getState().book.settings.background, setBackground);
+  const barColours = colourRow(BAR_SWATCHES, () => barColor(api.getState().book), setBarColor);
 
   // Strip count
   const strips = el("div", "row stepper");
@@ -705,7 +710,8 @@ export function openSettings(api) {
   );
 
   m.body.append(
-    el("h3", "", "Hintergrundfarbe"), colours,
+    el("h3", "", "Farbe oben"), colours,
+    el("h3", "", "Farbe unten"), barColours,
     el("h3", "", "Anzahl Streifen"), strips,
     el("h3", "", "Farbe der Klettstreifen"), stripColours,
     el("h3", "", "Stimme"), voiceBox,
